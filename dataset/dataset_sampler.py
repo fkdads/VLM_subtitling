@@ -1,8 +1,8 @@
 # This is a sample Python script.
-from helper import create_input_data
+# from helper import create_input_data
 import argparse
 import pathlib
-import dlib
+# import dlib
 
 if __name__ == '__main__':
 
@@ -15,11 +15,12 @@ if __name__ == '__main__':
                         help='define offset hardcoded. Please provide either --vo or --vd')
     parser.add_argument("--vd", dest="video_duration", default=None, action="store", type=float,
                         help='define offset hardcoded. Please provide either --vo or --vd')
-    parser.add_argument("--vp", dest="video_path", default=str(pathlib.Path.home()) + '/OneDrive - '
-                                                                                      'IUBH Internationale Hochschule/'
-                                                                                      'Vorlesungen/Master Thesis/'
-                                                                                      'Video Recordings/'
-                                                                                      'Netflix - SWAT - train.mp4',
+
+
+    parser.add_argument("--vp", dest="video_path", default=str(pathlib.Path().resolve().
+                                                                joinpath("video",
+                                                                         "video.mp4"
+                                                                         )),
                         action="store", type=str,
                         help='define offset hardcoded. Please provide either --vo or --vd')
     parser.add_argument("--bs", dest="batch_size", default=1, action="store", type=int, help='define batch size')
@@ -47,7 +48,7 @@ if __name__ == '__main__':
                              '(or caption)')
     parser.add_argument("--stp", dest="subtitles_path", default=str(pathlib.Path().resolve().
                                                                                            joinpath("subtitles",
-                                                                                                    "netflix_sample.xml"
+                                                                                                    "subtitles.xml"
                                                                                                     )) ,
                         action="store", type=str, help="Provide path to subtitles")
     parser.add_argument("--frc", dest="fractions", default=[0.75, 0.15, 0.1], type=float, nargs="+",
@@ -67,10 +68,15 @@ if __name__ == '__main__':
     parser.add_argument("--ean", dest="extract_annotations", action="store_true", default=True)
     parser.add_argument("--overlay_frames", dest="overlay_frames", type=int, default=1)
     parser.add_argument("--overlay_frames_skip", dest="overlay_frames_skip", type=int, default=1)
+    parser.add_argument("--anno", dest="annotations", default=[r"D:\Master_Thesis_data\Active_Speaker\data\train"
+                                                                     r"\result.json",
+                                               r"D:\Master_Thesis_data\Active_Speaker\data\val\result.json",
+                                               r"D:\Master_Thesis_data\Active_Speaker\data\test\result.json"], type=str, nargs="+",
+                        help="List of annotations paths (train, val, test)")
     args = parser.parse_args()
 
     if args.task == "subtitle_placement":
-        from helper import subtitle_placement
+        from dataset.helper.dataset_sampler_helper import subtitle_placement
         subtitle_placement = subtitle_placement(video_path=args.video_path, subtitles_path=args.subtitles_path,
                                                 task_name=args.task_name, video_offset=args.video_offset,
                                                 n_frames=args.n_frames, video_duration=args.video_duration,
@@ -84,13 +90,13 @@ if __name__ == '__main__':
                                                 overlay_frames=args.overlay_frames, frames_per_step=args.frames_per_step)
         subtitle_placement.create_input_data()
     elif args.task == "SAM":
-        from helper import SAM_annotations
-        SAM_segment_creator = SAM_annotations(path_coco_annotations=[r"D:\Master_Thesis_data\Active_Speaker\data\train"
-                                                                     r"\result.json",
-                                               r"D:\Master_Thesis_data\Active_Speaker\data\val\result.json",
-                                               r"D:\Master_Thesis_data\Active_Speaker\data\test\result.json"],
-                                              path_images=r"D:\Master_Thesis_data\Active_Speaker\data",
-                                              output_path=r"D:\Master_Thesis_data\Active_Speaker\pixelmaps")
+        from dataset.helper.dataset_sampler_helper import SAM_annotations
+        assert args.annotations
+        assert not "." in args.video_path and not ".mp4" in args.video_path, "Please provide valid image path for SAM " \
+                                                                             "segmentation task, instead of video file"
+        SAM_segment_creator = SAM_annotations(path_coco_annotations=args.annotations,
+                                              path_images=args.video_path,
+                                              output_path=args.video_path + r"\active_speaker_pixelmaps")
         SAM_segment_creator.run()
     else:
         pass

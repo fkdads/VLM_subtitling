@@ -2089,10 +2089,10 @@ class SAM_annotations():
                     outputpath = self.output_path + "\\" + state + "\\" + filename.replace(".jpg", ".png")
                     seg_image.save(outputpath)
 
-                    # encoded = encode(np.asfortranarray(masks))
-                    # parea = float(area(encoded))
+                    encoded = encode(np.asfortranarray(masks))
+                    parea = float(area(encoded))
 
-                    # encoded["counts"] = encoded["counts"].decode('utf-8')
+                    encoded["counts"] = encoded["counts"].decode('utf-8')
 
                     # decoded = decode(encoded)
                     # decoded[decoded == 0] = int(255)
