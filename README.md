@@ -7,7 +7,7 @@ Although we cannot share the copyrighted dataset, we offer configuration files f
 scripts to reproduce our results. 
 
 ## Updates 
-- 02/03/2024: Initial release.
+- 02/11/2024: Initial release.
 
 ## Tasks and Experiments {#experiments}
 | Task ID | Task Name | Task Description | Experiments                                                                                                         |
@@ -17,29 +17,6 @@ scripts to reproduce our results.
 | 3 | Person Detection Based on Original Image Input | Highlight all persons visible in natvie video frame. | - Single Frame                                                                                                      |
 | 4 | Active Speaker Detection Based on Person Detection Output | Detect Active Speaker in frames highlighting visible persons. | - Single Frame                                                                                                      |
 | 5 | Subtitlte Placement Based on Active Speaker Detection | Predict subtitle placement based on output of Task 2 and Task 4 | - Best working setup of respective Task                                                                             |
-
-
-## Models and Training
-The work is based on the following repositories and paper:
-
-| Model Type               | Model (Name)  | Paper                                         | Repo                                                            |
-|--------------------------|---------------|-----------------------------------------------|-----------------------------------------------------------------|
-| Vision Model             | Pix2Pix       | [Paper](https://arxiv.org/pdf/1611.07004.pdf) | [Repo](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) |
-| Vision-Language Models   | GLIP          | [Paper](https://arxiv.org/abs/2112.03857)     | [Repo](https://github.com/microsoft/GLIP/tree/main)             |
-| Vision-Language Models   | SAN           | [Paper](https://arxiv.org/abs/2302.12242)     | [Repo](https://github.com/MendelXu/SAN/tree/main)               |
-| Vision-Language Models   | DALL-E 2      | [Paper](http://arxiv.org/pdf/2204.06125.pdf)  | N/A                                                             |
-
-For training details on the models we refer to the repositories of the respective models. 
-
-You can find relevant configuration files in the subfolder ``\configs``. The files are structured for each model, 
-except DALL-E 2 which offers no fine-tuning capabilities.
-
-SAN and GLIP have been trained and tested on Google Colab, which is why we also provide training scripts in the 
-directory ``\configs\{model}\training``.
-Due to various python, pytorch and CUDA dependencies, various code snippets are highly vulnerable in terms of Google 
-Colab version updates. 
-This is why we try to fix the version of python itself and the used libraries. Nevertheless, if a script is not working 
-anymore, please check original repositories for further details.
 
 ## Dataset
 We also provide the script that was used to build our dataset, however we are not able to provide the original video 
@@ -123,6 +100,50 @@ download the default/ViT-H model to your execution runtime.
 To get insights on the available input parameters use the default help command in combination with the 
 *dataset_sampler.py* file.
 
+## Models and Training
+The work is based on the following repositories and paper:
+
+| Model Type               | Model (Name)  | Paper                                         | Repo                                                            |
+|--------------------------|---------------|-----------------------------------------------|-----------------------------------------------------------------|
+| Vision Model             | Pix2Pix       | [Paper](https://arxiv.org/pdf/1611.07004.pdf) | [Repo](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) |
+| Vision-Language Models   | GLIP          | [Paper](https://arxiv.org/abs/2112.03857)     | [Repo](https://github.com/microsoft/GLIP/tree/main)             |
+| Vision-Language Models   | SAN           | [Paper](https://arxiv.org/abs/2302.12242)     | [Repo](https://github.com/MendelXu/SAN/tree/main)               |
+| Vision-Language Models   | DALL-E 2      | [Paper](http://arxiv.org/pdf/2204.06125.pdf)  | N/A                                                             |
+
+For training details on the models we refer to the repositories of the respective models. 
+
+You can find relevant configuration files in the subfolder ``\configs``. The files are structured for each model, 
+except DALL-E 2 which offers no fine-tuning capabilities.
+
+SAN and GLIP have been trained and tested on Google Colab, which is why we also provide training scripts in the 
+directory ``\configs\{model}\training``.
+Due to various python, pytorch and CUDA dependencies, various code snippets are highly vulnerable in terms of Google 
+Colab version updates. 
+This is why we try to fix the version of python itself and the used libraries. Nevertheless, if a script is not working 
+anymore, please check original repositories for further details.
+
+
+
 ## Evaluation
+Please follow the model-specific evaluation procedures described in the above-mentioned repositories for Pix2Pix, SAN.
+To use DALL-E 2, we provide an evaluation script, leveraging the OpenAI API. Please make sure to enter you API Key
+before execution and adjust the prompts, which are currently hardcoded (they will be provided as separate text file in a 
+later version). GLIP evaluation only needs the final model checkpoint and images to be evaluated directly (i.e. you
+do not have to take care of generating evaluation results yourself, which is the case for other models).
+
+To evaluate the results of Pix2Pix and DALL-E 2, you have to manually label the predictions in the output. We recommend
+using [label-studio](https://labelstud.io/). Afterward use the evaluation scripts with the json annotation file. Use
+evaluation script XXXX.
+
+For GLIP you can directly use the model checkpoints for evaluation. Use the evaluation script XXXX.
+
+For SAN use json outputs of the checkpoints. Use the evaluation script XXX.
+
+
+## Additional Scripts
+We have additional script for the following tasks:
+- Visualize SAN segmentation results: XXX
+- Transform 3-channel to 1-channel images (SAN): XXX
+
 
 
