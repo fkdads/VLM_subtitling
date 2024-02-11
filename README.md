@@ -137,13 +137,13 @@ evaluation script XXXX.
 
 For GLIP you can directly use the model checkpoints for evaluation. Use the evaluation script XXXX.
 
-For SAN use json outputs of the checkpoints. Use the evaluation script XXX.
+For SAN use json outputs of the checkpoints. Use the evaluation script ``\configs\SAN\eval.py``.
 
 
 ## Additional Scripts
 We have additional script for the following tasks:
-- Visualize SAN segmentation results: XXX
-- Transform 3-channel to 1-channel images (SAN): XXX
+- Visualize SAN segmentation results: ``\additional_scripts\Adjust images from 3-channel to 1-channel images.ipynb``
+- Transform 3-channel to 1-channel images (SAN): ``\additional_scripts\Evaluate SAN.ipynb``
 
 
 
