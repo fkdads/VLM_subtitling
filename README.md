@@ -112,7 +112,7 @@ The work is based on the following repositories and paper:
 
 For training details on the models we refer to the repositories of the respective models. 
 
-You can find relevant configuration files in the subfolder ``\configs``. The files are structured for each model, 
+You can find relevant configuration files in the subfolder ``\train``. The files are structured for each model, 
 except DALL-E 2 which offers no fine-tuning capabilities.
 
 SAN and GLIP have been trained and tested on Google Colab, which is why we also provide training scripts in the 
@@ -121,8 +121,6 @@ Due to various python, pytorch and CUDA dependencies, various code snippets are 
 Colab version updates. 
 This is why we try to fix the version of python itself and the used libraries. Nevertheless, if a script is not working 
 anymore, please check original repositories for further details.
-
-
 
 ## Evaluation
 Please follow the model-specific evaluation procedures described in the above-mentioned repositories for Pix2Pix, SAN.
@@ -137,13 +135,12 @@ evaluation script XXXX.
 
 For GLIP you can directly use the model checkpoints for evaluation. Use the evaluation script XXXX.
 
-For SAN use json outputs of the checkpoints. Use the evaluation script ``\configs\SAN\eval.py``.
+For SAN use json outputs of the checkpoints. Use the evaluation script ``\eval\SAN\eval_SAN.ipynb``.
 
 
 ## Additional Scripts
 We have additional script for the following tasks:
-- Visualize SAN segmentation results: ``\additional_scripts\Adjust images from 3-channel to 1-channel images.ipynb``
-- Transform 3-channel to 1-channel images (SAN): ``\additional_scripts\Evaluate SAN.ipynb``
+- Transform 3-channel to 1-channel images (SAN): ``\additional_scripts\Adjust images from 3-channel to 1-channel images.ipynb``
 
 
 

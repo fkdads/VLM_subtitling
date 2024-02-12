@@ -1,0 +1,70 @@
+DATALOADER:
+  ASPECT_RATIO_GROUPING: false
+  SIZE_DIVISIBILITY: 30
+DATASETS:
+  GENERAL_COPY: 16
+  OVERRIDE_CATEGORY: [{"id": 1, "name": "spokesman", "supercategory": "person"}]
+    
+  # PREDEFINED_TEXT: odinw/pothole/category_description.json
+  REGISTER:
+    test:
+      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker/test/result.json
+      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-single/test2017_persons
+    train:
+      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker/train/result_persons.json
+      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-single/train_persons
+    val:
+      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker/val/result.json
+      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-single/val2017_persons
+
+  TEST: ("val",)
+  TRAIN: ("train",)
+  USE_OVERRIDE_CATEGORY: True
+  SHUFFLE_SEED: 3
+  USE_CAPTION_PROMPT: True
+  DISABLE_SHUFFLE: True
+  #SAMPLE_RATIO: 0.0
+  #RANDOM_SAMPLE_NEG: 1
+  #SAMPLE_NEGATIVE_FOR_GROUNDING_DATA: 0.0
+  #NO_RANDOM_PACK_PROBABILITY: 0.0
+INPUT:
+  MAX_SIZE_TEST: 1040
+  MAX_SIZE_TRAIN: 1040
+  MIN_SIZE_TEST: 800
+  MIN_SIZE_TRAIN: 800
+MODEL:
+  ATSS:
+    NUM_CLASSES: 2
+  DYHEAD:
+    NUM_CLASSES: 2
+  FCOS:
+    NUM_CLASSES: 2
+  ROI_BOX_HEAD:
+    NUM_CLASSES: 2
+  WEIGHT:
+    gdrive/MyDrive/DataGlip/model/glip_large_model.pth
+  BACKBONE:
+    FREEZE_CONV_BODY_AT: -1
+  DYHEAD:
+    USE_CHECKPOINT: True
+SOLVER:
+  CHECKPOINT_PERIOD: 1
+  MAX_EPOCH: 5
+  WARMUP_ITERS: 1
+  STEP_PATIENCE: 2
+  AUTO_TERMINATE_PATIENCE: 4
+  USE_AMP: True
+  IMS_PER_BATCH: 1
+  WEIGHT_DECAY: 0.05
+  FIND_UNUSED_PARAMETERS: False
+  TEST_WITH_INFERENCE: True
+  USE_AUTOSTEP: True
+  SEED: 10
+  CHECKPOINT_PER_EPOCH: 1.0
+  MODEL_EMA: 0.0
+  TUNING_HIGHLEVEL_OVERRIDE: full
+  MAX_NEG_PER_BATCH: 0.1
+TEST:
+  IMS_PER_BATCH: 1
+  DURING_TRAINING: False
+  EVAL_TASK: detection
