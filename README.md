@@ -93,7 +93,7 @@ subtitle_position_boxes_middle_of_subtitle_voting
  
 To get insights on the available input parameters use the default help command in combination with the 
 *dataset_sampler.py* file.
-###Manual Steps
+#### Manual Steps
 To get the final dataset, you need to label the active speaker manually with [label-studio](https://labelstud.io/) 
 according to [COCO format](https://cocodataset.org/#format-data). You also need to take care of skipping images with 
 off-screen speaker. At the end you can export the filtered dataset with annotation information. 
