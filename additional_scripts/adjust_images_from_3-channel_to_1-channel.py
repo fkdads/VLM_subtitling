@@ -10,7 +10,7 @@ def convert_to_grayscale(input_path, output_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Provide input parameters")
 
-    parser.add_argument("--pth", dest="path", default="D:\SAN\datasets\coco-active_speaker-overlapped\stuffthingmaps", type=str, action="store")
+    parser.add_argument("--pth", dest="path", default="D:\SAN\datasets\coco-active_speaker-active_speaker-overlapped\stuffthingmaps", type=str, action="store")
     # Directory path to start the search
     root_directory = parser.path
 

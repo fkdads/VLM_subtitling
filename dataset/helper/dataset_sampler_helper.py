@@ -229,7 +229,7 @@ class subtitle_placement:
         # Number of overlaying frames
         self.overlay_frames = kwargs.pop("overlay_frames", 1)
         assert (self.overlay_frames - 1) % 2 == 0, "Currently only overlay_frames with an odd number are allowed, " \
-                                                   "to be able to reuse manual labelling of single frame task."
+                                                   "to be able to reuse manual labelling of active_speaker-single_and_voting frame task."
         # Number of frames to skip between each overlay frame
         self.overlay_frames_skip = kwargs.pop("overlay_frames_skip", 1)
         # Number ofr frames to skip until next frame will be used

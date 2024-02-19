@@ -8,14 +8,14 @@ DATASETS:
   # PREDEFINED_TEXT: odinw/pothole/category_description.json
   REGISTER:
     test:
-      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-overlapped/test/result.json
-      img_dir: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-overlapped/test/images
+      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-active_speaker-overlapped/test/result.json
+      img_dir: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-active_speaker-overlapped/test/images
     train:
-      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-overlapped/train/result.json
-      img_dir: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-overlapped/train/images
+      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-active_speaker-overlapped/train/result.json
+      img_dir: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-active_speaker-overlapped/train/images
     val:
-      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-overlapped/val/result.json
-      img_dir: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-overlapped/val/images
+      ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-active_speaker-overlapped/val/result.json
+      img_dir: /gdrive/MyDrive/DataGlip/INPUT_active-speaker-active_speaker-overlapped/val/images
 
   TEST: ("val",)
   TRAIN: ("train",)

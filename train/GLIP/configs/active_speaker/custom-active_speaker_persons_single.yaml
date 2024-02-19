@@ -9,13 +9,13 @@ DATASETS:
   REGISTER:
     test:
       ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker/test/result.json
-      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-single/test2017_persons
+      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-active_speaker-single_and_voting/test2017_persons
     train:
       ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker/train/result_persons.json
-      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-single/train_persons
+      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-active_speaker-single_and_voting/train_persons
     val:
       ann_file: /gdrive/MyDrive/DataGlip/INPUT_active-speaker/val/result.json
-      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-single/val2017_persons
+      img_dir: /gdrive/MyDrive/DataSAN/datasets/coco-active_speaker-active_speaker-single_and_voting/val2017_persons
 
   TEST: ("val",)
   TRAIN: ("train",)

@@ -319,7 +319,7 @@ def initialize(config_file: str, weight_file: str):
 def evaluate_json(path_json: str, path_images: str, glip_own, caption: str = "spokesman. listener",
                   print_single_result: bool = True, threshold_predictions: float = 0.3, threshold_overlap: float = 0.5,
                   transform_annotation_bboxes_format: bool = True):
-    # assert "." not in caption, "Yet only single captions are supported"
+    # assert "." not in caption, "Yet only active_speaker-single_and_voting captions are supported"
     # Opening JSON file
     f = open(path_json)
 
@@ -560,7 +560,7 @@ def evaluate_json(path_json: str, path_images: str, glip_own, caption: str = "sp
 def evaluate_json_voting(path_json: str, path_images: str, glip_own, caption: str = "spokesman. listener",
                          print_single_result: bool = True, threshold_predictions: float = 0.1,
                          threshold_overlap: float = 0.5, transform_annotation_bboxes_format: bool = True):
-    # assert "." not in caption, "Yet only single captions are supported"
+    # assert "." not in caption, "Yet only active_speaker-single_and_voting captions are supported"
     # Opening JSON file
     f = open(path_json)
 
@@ -881,7 +881,7 @@ def calculate_area(bbox):
 def evaluate_json_distance(path_json: str, path_images: str, glip_own, caption: str = "subtitle-placement",
                            print_single_result: bool = True, threshold_predictions: float = 0.1,
                            transform_annotation_bboxes_format: bool = True, normalize: bool = False):
-    # assert "." not in caption, "Yet only single captions are supported"
+    # assert "." not in caption, "Yet only active_speaker-single_and_voting captions are supported"
     # Opening JSON file
     f = open(path_json)
 
@@ -1206,19 +1206,19 @@ if __name__ == "__main__":
     parser.add_argument("--annotation", help="Path to annotation json file", type=str, nargs='+')
     parser.add_argument("--img", help="Path to images", type=str, nargs='+')
     parser.add_argument("--task",
-                        help="Define task: distance or recall or to show predicted bounding box for a single image, chhose single",
+                        help="Define task: distance or recall or to show predicted bounding box for a active_speaker-single_and_voting image, chhose active_speaker-single_and_voting",
                         type=str)
     parser.add_argument("--prompt", help="Define prompt for execution/evaluaiton.", type=str)
     parser.add_argument("--normalize", action="store_true", help="Define if normalizing should be applied or not")
     parser.add_argument("--print_result", action="store_true",
-                        help="Define if single evaluation results should be displayed.")
+                        help="Define if active_speaker-single_and_voting evaluation results should be displayed.")
     parser.add_argument("--position_height", type=int,
                         help="Defines the positioning height for subtitle placement in % of the height of image.",
                         default=80)
     parser.add_argument("--iou_threshold", type=float, default=0.5,
                         help="Define the iou threshold for task recall to add restriction for matchiing predicted and actual bounding box.")
     parser.add_argument("--filter_for_max", action="store_true",
-                        help="Defines if for the single task all found bboxes or only max bbox should be imprinted.")
+                        help="Defines if for the active_speaker-single_and_voting task all found bboxes or only max bbox should be imprinted.")
     args = parser.parse_args()
 
     config_files = args.config
@@ -1239,7 +1239,7 @@ if __name__ == "__main__":
     # weight_files = [r"D:\Gits\GLIP\model\SBPLM\model_best.pth"]
     # json_files = [r"D:\Gits\GLIP\DATASET\SBPLM\stuff_val2017_GLIP.json"]
     # path_images = [r"E:\Python\MasterThesis\AutomaticSubtitlePlacement\data\subtitle_position_boxes_middle_of_subtitle\_A\val"]
-    if task.lower() != "single":
+    if task.lower() != "active_speaker-single_and_voting":
         if "distance" in task.lower():
             print(f"Normalize distances: {normalize}")
         main_batch(config_files, weight_files, json_files, path_images, task, prompt, normalize,
@@ -1255,9 +1255,9 @@ if __name__ == "__main__":
     #                r"E:\Python\MasterThesis\GLIP\model\normal\config.yml"]
     # weight_files = [r"E:\Python\MasterThesis\GLIP\model\Overlapped\model_best.pth",
     #                r"E:\Python\MasterThesis\GLIP\model\normal\model_best.pth"]
-    # json_files = [r"E:\Python\MasterThesis\GLIP\DATASET\overlapped\result_val.json",
+    # json_files = [r"E:\Python\MasterThesis\GLIP\DATASET\active_speaker-overlapped\result_val.json",
     #              r"E:\Python\MasterThesis\GLIP\DATASET\normal\result_val.json"]
-    # path_images = [r"E:\Python\MasterThesis\GLIP\DATASET\overlapped\images",
+    # path_images = [r"E:\Python\MasterThesis\GLIP\DATASET\active_speaker-overlapped\images",
     #               r"E:\Python\MasterThesis\GLIP\DATASET\normal\images"]
 
     # main_batch(config_files, weight_files, json_files, path_images)
