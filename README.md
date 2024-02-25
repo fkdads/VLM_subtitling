@@ -1,13 +1,14 @@
-# Exploring Strategies for Utilizing Vision-Language Models in Subtitle Placement
+# Investigating Strategies for Leverage Vision-Language Models for Subtitle Placement
 
-The provided code pertains to the Master's Thesis titled _Exploring Strategies for Utilizing Vision-Language Models in 
-Subtitle Placement_. 
+The provided code pertains to the Master's Thesis titled _Investigating Strategies for Leverage Vision-Language Models for Subtitle Placement_. 
 
 Although we cannot share the copyrighted dataset, we offer configuration files for model training along with evaluation 
-scripts to reproduce our results. 
+scripts to reproduce our results.
+
+> **Please Note:** The code provided does currently not represent a final version and is only provided in order to be able to reproduce our results. A great deal of manual effort will be involved in creating the data set. Future releases are possible, which will make the repository easier to use.
 
 ## Updates 
-- 02/11/2024: Initial release.
+- 02/24/2024: Initial release.
 
 ## Tasks and Experiments
 | Task ID | Task Name | Task Description | Experiments                                                                                                         |
