@@ -16,9 +16,13 @@ scripts to reproduce our results.
 
 ## Environment
 
-To set up the environment, we recommend to use a virtual environment based on Python 3.12 and the modules listed in
-requirements.txt.
-Please ensure to have installed C++ Visual Studio Redistribution package to install segment_anything.
+To set up the environment, we recommend to use a virtual environment based on _**Python 3.12**_ and the modules listed in
+`requirements.txt`.
+Please ensure to have installed _**C++ Visual Studio Redistribution package**_ to install _segment_anything_ and 
+_face_recognition_ on Windows. Since _face_recognition_ and _segment_anything_ modules support GPU usage, you can reduce
+runtimes significantly. Code and requirements.txt file refer to **CUDA Toolkit V.11.8**.
+
+The provided code is tested on Windows 11.
 
 ## Tasks and Experiments
 
@@ -62,7 +66,6 @@ We will distinguish between building the following datasets:
 | 3          | Three Frames Voting     | Dataset sampling three individual, consecutive frames, that will be evaluated to determine majority consensus. While the frames are stacked in Dataset 2, they provide three distinctive samples files. | All three frames voting experiments |
 
 ### Build Initial Dataset
-
 To build the dataset, you can use the following command lines:
 
 - **Dataset - Single Frame**: ``--vo

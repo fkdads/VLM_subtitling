@@ -4,9 +4,9 @@ import pathlib
 import warnings
 import statistics
 
-#import leb128
-#import numpy as np
-#from typing import List
+# import leb128
+# import numpy as np
+# from typing import List
 from datetime import datetime
 import random
 from segment_anything import sam_model_registry, SamPredictor
@@ -19,7 +19,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import argparse
-import sys
+# import sys
+
 
 def __init_arg_parse() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Provide input parameters")
@@ -34,9 +35,9 @@ def __init_arg_parse() -> argparse.Namespace:
                         help='define video duration hardcoded. Please provide either --vo or --vd')
 
     parser.add_argument("--vp", dest="video_path", default=str(pathlib.Path().resolve().
-                                                                             joinpath("video",
-                                                                                      "video.mp4"
-                                                                                      )),
+                                                               joinpath("video",
+                                                                        "video.mp4"
+                                                                        )),
                         action="store", type=str,
                         help='define offset hardcoded. Please provide either --vo or --vd')
 
@@ -68,8 +69,8 @@ def __init_arg_parse() -> argparse.Namespace:
                                                   'references having any annotation (or caption)')
 
     parser.add_argument("--stp", dest="subtitles_path", default=str(pathlib.Path().resolve().
-                                                                                  joinpath("subtitles",
-                                                                                           "subtitles.xml")),
+                                                                    joinpath("subtitles",
+                                                                             "subtitles.xml")),
                         action="store", type=str, help="Provide path to subtitles")
 
     parser.add_argument("--frc", dest="fractions", default=[0.75, 0.15, 0.1], type=float, nargs="+",
@@ -102,13 +103,15 @@ def __init_arg_parse() -> argparse.Namespace:
 
     parser.add_argument("--anno", dest="annotations",
                         default=[
-                            r"D:\Master_Thesis_data\Active_Speaker\data\train"
+                            r"D:\Master_Thesis_data\Active_Speaker\dataset_final\train"
                             r"\result.json",
-                            r"D:\Master_Thesis_data\Active_Speaker\data\val\result.json",
-                            r"D:\Master_Thesis_data\Active_Speaker\data\test\result.json"
+                            r"D:\Master_Thesis_data\Active_Speaker\dataset_final\val\result.json",
+                            r"D:\Master_Thesis_data\Active_Speaker\dataset_final\test\result.json"
                         ],
                         type=str, nargs="+", help="List of annotations paths (train, val, test)")
     return parser.parse_args()
+
+
 def separate_audio_from_video(path: str = r"C:\Users\Fabia\Videos\Captures\Test Cyrill.mp4",
                               path_target: str = r"C:\Users\Fabia\Videos\Captures\Test_Cyrill.wav"):
     assert path != "", "path for separate_audio_from_video is empty"
@@ -260,20 +263,18 @@ class subtitle_placement:
         assert ((isinstance(args.video_duration, float) and args.video_duration >= 0) or
                 (args.video_duration is None and isinstance(args.video_offset, float) and args.video_offset > 0)), \
             "Please provide valid video_duration or video_offset"
-        assert isinstance(args.frame_step, str) and len(args.frame_step) > 0, "Please provide valid frame_step"
-        assert isinstance(args.fractions, str) and len(args.fractions) > 0, "Please provide valid fractions"
-        assert isinstance(args.extract_middle_and_default, str) and len(args.extract_middle_and_default) > 0, \
-            "Please provide valid extract_middle_and_default"
-        assert isinstance(args.dot_middle_of_subtitle_box, str) and len(args.dot_middle_of_subtitle_box) > 0, \
-            "Please provide valid dot_middle_of_subtitle_box"
-        assert isinstance(args.fixed_start_point, str) and len(args.fixed_start_point) > 0, ("Please provide valid "
-                                                                                             "fixed_start_point")
-        assert isinstance(args.extract_annotations, str) and len(args.extract_annotations) > 0, ("Please provide valid "
-                                                                                                 "extract_annotations")
-        assert isinstance(args.overlay_frames_skip, str) and len(args.overlay_frames_skip) > 0, ("Please provide valid "
-                                                                                                 "overlay_frames_skip")
-        assert isinstance(args.frames_per_step, str) and len(args.frames_per_step) > 0, ("Please provide valid "
-                                                                                         "frames_per_step")
+        assert isinstance(args.frame_step, int) and args.frame_step > 0, "Please provide valid frame_step"
+        assert isinstance(args.fractions, list) and len(args.fractions) == 3, "Please provide valid fractions"
+        assert isinstance(args.extract_middle_and_default, bool), "Please provide valid extract_middle_and_default"
+        assert isinstance(args.dot_middle_of_subtitle_box, bool), "Please provide valid dot_middle_of_subtitle_box"
+        assert isinstance(args.fixed_start_point, int) and args.fixed_start_point >= 0, ("Please provide valid "
+                                                                                         "fixed_start_point")
+        assert isinstance(args.extract_annotations, bool), "Please provide valid extract_annotations"
+        assert isinstance(args.overlay_frames_skip, int) and args.overlay_frames_skip >= 0, ("Please provide valid "
+                                                                                             "overlay_frames_skip")
+        assert isinstance(args.frames_per_step, int) and args.frames_per_step >= 0, ("Please provide valid "
+                                                                                     "frames_per_step")
+
     def __init_annotation_extract(self):
         self.annotations = {"train": [], "val": [], "test": []}
         self.annotation_info = {
@@ -383,7 +384,8 @@ class subtitle_placement:
         assert isinstance(self.output_path, str) and self.output_path != ""
         assert isinstance(self.n_frames, int) and self.n_frames > 0
         assert isinstance(self.frame_step, int) and self.frame_step >= 0
-        assert (self.overlay_frames <= 1 and self.frames_per_step >=1) or (self.overlay_frames >= 1 and self.frames_per_step <=1), "Only overlay ofr frames_per_step can be used. Not both at the same time."
+        assert (self.overlay_frames <= 1 and self.frames_per_step >= 1) or (
+                    self.overlay_frames >= 1 and self.frames_per_step <= 1), "Only overlay ofr frames_per_step can be used. Not both at the same time."
 
         self.__initialize_output_directories()
         self.initialized = True
@@ -407,9 +409,8 @@ class subtitle_placement:
 
         cap = cv2.VideoCapture(video_path)
 
-        if cap.isOpened() is False:
-            cap = cv2.VideoCapture(video_path.replace("OneDrive - IUBH Internationale Hochschule",
-                                                      "OneDrive - IU International University of Applied Sciences"))
+        #if cap.isOpened() is False:
+        #    cap = cv2.VideoCapture(video_path)
 
         assert cap.isOpened() is True, "Error reading video file"
 
@@ -485,17 +486,18 @@ class subtitle_placement:
         steps_counter_whole = 0
         temp_frames_per_step = self.frames_per_step
         while i < self.n_frames:
-            range_to_skip = self.frame_step - int(((self.overlay_frames - 1)/2)*self.overlay_frames_skip) - int((self.frames_per_step - 1)/2)
+            range_to_skip = self.frame_step - int(((self.overlay_frames - 1) / 2) * self.overlay_frames_skip) - int(
+                (self.frames_per_step - 1) / 2)
             if temp_frames_per_step > 0 and steps_counter_whole > 0 and self.frames_per_step > 1:
                 range_to_skip = 1
             elif steps_counter_whole > 0 and (self.overlay_frames > 1 or self.frames_per_step > 1):
-                range_to_skip -= max(int((self.frames_per_step - 1)/2), int((self.overlay_frames - 1)/2))
+                range_to_skip -= max(int((self.frames_per_step - 1) / 2), int((self.overlay_frames - 1) / 2))
             # needs to be activated to start sampling directly from start point --> deactivated, since original set was sampled with start + range_to_skip
-            #if i == 0:
+            # if i == 0:
             #    ret,frame = cap.read()
-            #else:
+            # else:
             steps_counter = 0
-            #if temp_frames_per_step <= 0 or steps_counter_whole == 0:
+            # if temp_frames_per_step <= 0 or steps_counter_whole == 0:
             for _ in range(range_to_skip):
                 if i < self.n_frames:
                     ret, frame = cap.read()
@@ -507,18 +509,18 @@ class subtitle_placement:
                 temp_frames_per_step = self.frames_per_step
 
             if self.overlay_frames > 1 and ret:
-                #frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-                #print(f"Current frame number: {frame_number}")
+                # frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+                # print(f"Current frame number: {frame_number}")
 
                 temp_frame = frame.copy()
                 for step_frames in range((self.overlay_frames - 1)):
                     for step in range(self.overlay_frames_skip):
-                        #if steps_counter_whole >= 35 and steps_counter_whole <=38:
+                        # if steps_counter_whole >= 35 and steps_counter_whole <=38:
                         #    img = Image.fromarray(frame)
-                            #    draw = ImageDraw.Draw(img)
-                            #    for face_location in list_return[pz]:
-                            #        top, right, bottom, left = face_location
-                            #        draw.rectangle([left, top, right, bottom], outline="red", width=3)
+                        #    draw = ImageDraw.Draw(img)
+                        #    for face_location in list_return[pz]:
+                        #        top, right, bottom, left = face_location
+                        #        draw.rectangle([left, top, right, bottom], outline="red", width=3)
 
                         #    img.show()
                         ret, frame = cap.read()
@@ -526,18 +528,18 @@ class subtitle_placement:
                     if step_frames == 0:
                         frame_original = frame.copy()
                         frame_original_msec = cap.get(cv2.CAP_PROP_POS_MSEC)
-                        #frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-                        #print(f"Current frame number: {frame_number}")
-                        #print(i)
+                        # frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+                        # print(f"Current frame number: {frame_number}")
+                        # print(i)
 
-                    #frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-                    #print(f"Current frame number: {frame_number}")
+                    # frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+                    # print(f"Current frame number: {frame_number}")
 
                     temp_frame = cv2.addWeighted(temp_frame, 1, frame.copy(), 0.4, 0)
                     # temp_frame = frame_original.copy()
                 frame = temp_frame.copy()
                 temp_frame = None
-            #else:
+            # else:
             #    frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
             #    print(f"Current frame number: {frame_number}")
             #    print(i)
@@ -557,13 +559,16 @@ class subtitle_placement:
                     frame_original_msec = None
                 else:
                     filtered_subtitles_array = self.__filter_subtitles_array(
-                        position_video_file_milliseconds=cap.get(cv2.CAP_PROP_POS_MSEC), subtitles_array=subtitles_array,
+                        position_video_file_milliseconds=cap.get(cv2.CAP_PROP_POS_MSEC),
+                        subtitles_array=subtitles_array,
                         offset=offset)
                 if len(filtered_subtitles_array) > 0:
                     subtitles.append(filtered_subtitles_array)
                     frames.append(frame.copy())
 
-                    if self.overlay_frames > 1 or (self.frames_per_step > 1 and temp_frames_per_step == statistics.median(list(range(1, self.frames_per_step + 1)))):
+                    if self.overlay_frames > 1 or (
+                            self.frames_per_step > 1 and temp_frames_per_step == statistics.median(
+                            list(range(1, self.frames_per_step + 1)))):
                         if self.overlay_frames > 1:
                             frames_face_recognition.append(frame_original.copy())
                         else:
@@ -578,7 +583,8 @@ class subtitle_placement:
                     # list_return = GLIP_coco_like_helper.find_faces([zp[:, :, ::-1] for zp in frames.copy()], subtitles,
                     if self.overlay_frames > 1 or self.frames_per_step > 1:
                         list_return = GLIP_coco_like_helper.find_faces(frames_face_recognition.copy(), subtitles,
-                                                                   iteration=i - len(frames) + 1, only_return_detection_result_bool=True)
+                                                                       iteration=i - len(frames) + 1,
+                                                                       only_return_detection_result_bool=True)
                     else:
                         list_return = GLIP_coco_like_helper.find_faces(frames.copy(), subtitles,
                                                                        iteration=i - len(frames) + 1,
@@ -590,20 +596,21 @@ class subtitle_placement:
                         prange = range(0, len_frames - 1)
                     for pz in prange:
                         if len(list_return[pz]) > 0:
-                            #img = Image.fromarray(frames_face_recognition[pz])
-                            #img.show()
-                            #cv2.waitKey(0)
-                            #cv2.destroyAllWindows()
+                            # img = Image.fromarray(frames_face_recognition[pz])
+                            # img.show()
+                            # cv2.waitKey(0)
+                            # cv2.destroyAllWindows()
 
-                            #img = Image.fromarray(frames[pz])
-                            #img.show()
-                            #cv2.waitKey(0)
-                            #cv2.destroyAllWindows()
-
+                            # img = Image.fromarray(frames[pz])
+                            # img.show()
+                            # cv2.waitKey(0)
+                            # cv2.destroyAllWindows()
 
                             if self.frames_per_step > 1:
                                 frames_locater = pz * self.frames_per_step
-                                frames_list, subtitles_list = frames[frames_locater: frames_locater + self.frames_per_step].copy(), subtitles[frames_locater: frames_locater + self.frames_per_step].copy()
+                                frames_list, subtitles_list = frames[
+                                                              frames_locater: frames_locater + self.frames_per_step].copy(), subtitles[
+                                                                                                                             frames_locater: frames_locater + self.frames_per_step].copy()
                             else:
                                 frames_list, subtitles_list = [frames[pz].copy()], [subtitles[pz]]
 
@@ -613,7 +620,7 @@ class subtitle_placement:
                                     frame_height=frame_height, frame_width=frame_width,
                                     middle=self.default_middle,
                                     dot_middle_of_subtitle_box=self.dot_middle_of_subtitle_box)
-                                #if i == 843 or i == "843" or int(i) >= 1330:
+                                # if i == 843 or i == "843" or int(i) >= 1330:
                                 #    print("stop_id")
                                 #    img = Image.fromarray(default_frame)
                                 #    draw = ImageDraw.Draw(img)
@@ -633,7 +640,8 @@ class subtitle_placement:
 
                                 if i < self.fractions[0] * self.n_frames:
                                     current_state = "train"
-                                elif i >= self.fractions[0] * self.n_frames and i < (self.fractions[0] + self.fractions[1]) \
+                                elif i >= self.fractions[0] * self.n_frames and i < (
+                                        self.fractions[0] + self.fractions[1]) \
                                         * self.n_frames:
                                     current_state = "val"
                                 else:
@@ -648,19 +656,24 @@ class subtitle_placement:
                                                        os.path.join(self.output_path, "B", current_state),
                                                        os.path.join(self.output_path, "_A", current_state),
                                                        os.path.join(self.output_path, "__A", current_state),
-                                                       os.path.join(self.output_path, "_B", current_state)], str(i) + "_" + str(pPointer) + ".jpg",
-                                                      [default_frame, positioned_frame, frames_list[pPointer].copy(), frame_start, frame_subtitle])
+                                                       os.path.join(self.output_path, "_B", current_state)],
+                                                      str(i) + "_" + str(pPointer) + ".jpg",
+                                                      [default_frame, positioned_frame, frames_list[pPointer].copy(),
+                                                       frame_start, frame_subtitle])
                                 else:
                                     self.write_frames([os.path.join(self.output_path, "A", current_state),
                                                        os.path.join(self.output_path, "B", current_state)],
-                                                      str(i) + "_" + str(pPointer) + ".jpg", [default_frame, positioned_frame])
+                                                      str(i) + "_" + str(pPointer) + ".jpg",
+                                                      [default_frame, positioned_frame])
 
                                 if self.extract_annotations:
                                     result = self.determine_encode_mask((frame_height, frame_width),
                                                                         start_point, end_point)
 
-                                    self.create_and_append_annotations_segmentation(current_state, frame_height, frame_width, i,
-                                                                                    result, end_point, start_point, subtitles_list[pPointer][0][0])
+                                    self.create_and_append_annotations_segmentation(current_state, frame_height,
+                                                                                    frame_width, i,
+                                                                                    result, end_point, start_point,
+                                                                                    subtitles_list[pPointer][0][0])
 
                                     self.save_pixelmap(segmentation_counts=result, pkey=current_state, i=i)
                                     # if current_state_previous != current_state and current_state_previous is not None:
@@ -671,7 +684,7 @@ class subtitle_placement:
                                     # current_state_previous = current_state
                             progress_bar.update(1)
                             i += 1
-                        #else:
+                        # else:
                         #    img = Image.fromarray(default_frame)
                         #    img.show()
                     frames = []
@@ -716,22 +729,24 @@ class subtitle_placement:
 
     def save_pixelmap(self, segmentation_counts: str, pkey: str, i: int):
         colors = {0: 255, 1: 1}  # RGB values
-        mask_array = decode(frPyObjects(segmentation_counts, segmentation_counts["size"][0], segmentation_counts["size"][1]))
+        mask_array = decode(
+            frPyObjects(segmentation_counts, segmentation_counts["size"][0], segmentation_counts["size"][1]))
 
         image = np.zeros((segmentation_counts["size"][0], segmentation_counts["size"][1], 1), dtype=np.uint8)
         # Set pixel values using NumPy indexing
         image[np.where(mask_array == 0)] = colors[0]  # Set dark gray for mask value 0
-        image[np.where(mask_array == 1)] = self.annotation_categories[0]['id'] #colors[1]
+        image[np.where(mask_array == 1)] = self.annotation_categories[0]['id']  # colors[1]
 
-        #image = image.transpose(image, (1, 0, 2))
+        # image = image.transpose(image, (1, 0, 2))
         image = np.squeeze(image, axis=2)
         image = Image.fromarray(image, mode="L")
 
-        #image.show()
+        # image.show()
         os.makedirs(os.path.join(self.output_path, "pixelmaps", pkey), exist_ok=True)
         file_path = os.path.join(self.output_path, "pixelmaps", pkey, str(i) + ".png")
-        #image = image.convert("RGB")
+        # image = image.convert("RGB")
         image.save(file_path)
+
     def write_annotatons(self):
         for pkey, value in self.annotations.items():
             # Specify the file path where you want to save the JSON data
@@ -755,7 +770,6 @@ class subtitle_placement:
                 with open(file_path, 'w') as json_file:
                     json.dump(self.count_faces[pkey], json_file)
 
-
     @staticmethod
     def determine_encode_mask(image_size, start_point, end_point):
         # Create a binary mask based on the provided points
@@ -772,7 +786,7 @@ class subtitle_placement:
         # pil_image.show()
         # exit(-1)
 
-        #mask = mask.transpose()
+        # mask = mask.transpose()
         # Calculate RLE-encoded counts using vectorized operations
         mask_flattened = mask.reshape(-1, order="F")
         change_positions = np.where(np.diff(mask_flattened) != 0)[0]
@@ -783,11 +797,11 @@ class subtitle_placement:
         import matplotlib.pyplot as plt
         from pycocotools import mask as mask_utils
 
-        #dict_segmentation = frPyObjects({'counts': final_array.tolist(), 'size': mask.shape[:2]}, mask.shape[:2][0], mask.shape[:2][1])
-        #plt.figure(figsize=(8, 8))
-        #plt.imshow(mask_utils.decode(dict_segmentation))
-        #plt.axis('off')
-        #plt.show()
+        # dict_segmentation = frPyObjects({'counts': final_array.tolist(), 'size': mask.shape[:2]}, mask.shape[:2][0], mask.shape[:2][1])
+        # plt.figure(figsize=(8, 8))
+        # plt.imshow(mask_utils.decode(dict_segmentation))
+        # plt.axis('off')
+        # plt.show()
         rle_encoded = {'counts': final_array.tolist(), 'size': mask.shape[:2]}
 
         return rle_encoded
@@ -831,27 +845,29 @@ class subtitle_placement:
         frame_positioned = cv2.rectangle(frame_positioned, (round(x_start - (size / 2)), round(y_start - (size / 2))),
                                          (round(x_start + size / 2), round(y_start + size / 2)), (255, 0, 0), -1)
 
-
         frame_subtitle = frame.copy()
-        frame_subtitle = cv2.putText(frame_subtitle, subtitle_array[6], (int(x_start_orig), int(y_start_orig)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2, cv2.LINE_AA)
-
-
+        frame_subtitle = cv2.putText(frame_subtitle, subtitle_array[6], (int(x_start_orig), int(y_start_orig)),
+                                     cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2, cv2.LINE_AA)
 
         if middle:
             frame_start = frame.copy()
             frame_start = cv2.rectangle(frame_start,
-                                  (round((frame_width / 2) - (size / 2) - (((float(subtitle_array[4].replace("%", "")) / 100) / 2) * frame_width)), round(frame_height * 0.9 - (size / 2))),
-                                  (round((frame_width / 2) + (size / 2) - (((float(subtitle_array[4].replace("%", "")) / 100) / 2) * frame_width)), round(frame_height * 0.9 + (size / 2))),
-                                  (255, 0, 0), -1)
+                                        (round((frame_width / 2) - (size / 2) - (((float(
+                                            subtitle_array[4].replace("%", "")) / 100) / 2) * frame_width)),
+                                         round(frame_height * 0.9 - (size / 2))),
+                                        (round((frame_width / 2) + (size / 2) - (((float(
+                                            subtitle_array[4].replace("%", "")) / 100) / 2) * frame_width)),
+                                         round(frame_height * 0.9 + (size / 2))),
+                                        (255, 0, 0), -1)
             frame = cv2.rectangle(frame,
                                   (round((frame_width / 2) - (size / 2)), round(frame_height * 0.9 - (size / 2))),
                                   (round((frame_width / 2) + (size / 2)), round(frame_height * 0.9 + (size / 2))),
                                   (255, 0, 0), -1)
             return frame_positioned, frame, frame_start, (round(x_start - (size / 2)), round(y_start - (size / 2))), (
-            round(x_start + size / 2), round(y_start + size / 2)), frame_subtitle
+                round(x_start + size / 2), round(y_start + size / 2)), frame_subtitle
         else:
             return frame_positioned, frame, (round(x_start - (size / 2)), round(y_start - (size / 2))), (
-            round(x_start + size / 2), round(y_start + size / 2)), frame_subtitle
+                round(x_start + size / 2), round(y_start + size / 2)), frame_subtitle
 
 
 class GLIP_coco_like:
@@ -924,7 +940,7 @@ class GLIP_coco_like:
 
     def find_faces(self, frames: list, subtitles: list, iteration: int = 0, number_of_times_to_upsample: int = 0,
                    frame_width: int = 1920, frame_height: int = 1080,
-                   weight_subtitle_placement_x: list = [2, 1], only_return_detection_result_bool = False) -> list:
+                   weight_subtitle_placement_x: list = [2, 1], only_return_detection_result_bool=False) -> list:
         assert isinstance(frames, list) and len(frames) > 0, "Please provide valid list for input parameter frames"
 
         import face_recognition
@@ -1450,8 +1466,8 @@ class GLIP_coco_like:
 
         assert isinstance(frames, (list, np.ndarray)), "Please provide valid frame array"
         assert isinstance(annotations, list) and (
-                    len(annotations) == 2 or annotations == [] or subtitles_dict == {}), "Please provide annotations as list = " \
-                                                                                         "[closest, others]"
+                len(annotations) == 2 or annotations == [] or subtitles_dict == {}), "Please provide annotations as list = " \
+                                                                                     "[closest, others]"
         assert isinstance(pathes, list) and ((len(pathes) == 2 and (only_frames is False and len(
             pathes) == 1 and subtitles_annotations is False)) or subtitles_annotations is True), "Please provide pathes as list = " \
                                                                                                  "[original_output, framed_output]"
@@ -1469,7 +1485,8 @@ class GLIP_coco_like:
             cv2.imwrite(pathes[0] + f"{i + idx - len(frames) + 1}.jpg", frame)
             if only_frames is False:
                 file_names.append({"id": i + idx - len(frames) + 1, "license": 1,
-                                   "file_name": pathes[0] + f"{i + idx - len(frames) + 1}.jpg", "height": int(frame_height),
+                                   "file_name": pathes[0] + f"{i + idx - len(frames) + 1}.jpg",
+                                   "height": int(frame_height),
                                    "width": int(frame_width), "date_captured": str(datetime.now())})
                 if subtitles_annotations is False:
                     if i + idx - len(frames) + 1 in subtitles_dict:
@@ -2078,8 +2095,8 @@ class FrameGenerator:
 
 class SAM_annotations():
     def __init__(self, path_coco_annotations: list, path_images: str, sam_checkpoint: str
-    =r"D:\Gits\SAM\models\sam_vit_h_4b8939.pth", sam_model_type: str ="vit_h", device: str = "cuda", output_path: str
-    =r"D:\Master_Thesis_data\Active_Speaker\pixelmaps"):
+    = r"D:\Gits\SAM\models\sam_vit_h_4b8939.pth", sam_model_type: str = "vit_h", device: str = "cuda", output_path: str
+                 = r"D:\Master_Thesis_data\Active_Speaker\pixelmaps"):
         self.final_annotations = None
         self.path_coco_annotations = path_coco_annotations
         self.path_images = path_images
@@ -2108,7 +2125,7 @@ class SAM_annotations():
             subfolder_path = os.path.join(self.output_path, subfolder)
 
             if not os.path.exists(subfolder_path):
-            # If the subfolder doesn't exist in the destination directory, create it
+                # If the subfolder doesn't exist in the destination directory, create it
                 os.makedirs(subfolder_path)
                 print(f"Created subfolder '{subfolder}' in the destination directory.")
             else:
@@ -2147,6 +2164,7 @@ class SAM_annotations():
         return mask
 
         # self.COCO_info = {}
+
     def run(self):
         # This is a sample Python script.
 
@@ -2158,9 +2176,9 @@ class SAM_annotations():
 
         self.final_annotations = {}
         # temp_annotations = {}
-        #counter = 0
+        # counter = 0
         for root, directories, files in os.walk(self.path_images):
-            #if counter > 5:
+            # if counter > 5:
             #    break
             if root.split('\\')[-1] == "train":
                 state = "train"
@@ -2169,8 +2187,8 @@ class SAM_annotations():
             elif root.split('\\')[-1] == "val":
                 state = "val"
             for filename in files:
-                #counter += 1
-                #if counter > 5:
+                # counter += 1
+                # if counter > 5:
                 #    break
                 file_path = os.path.join(root, filename)
                 # Check if the file has a valid image extension (you can add more extensions as needed)
@@ -2181,7 +2199,7 @@ class SAM_annotations():
 
                     self.predictor.set_image(image)
                     x, y, x_ext, y_ext = self.COCO_info[filename]["bbox"]
-                    input_point = np.array([[x + x_ext/2, y + y_ext/2]])
+                    input_point = np.array([[x + x_ext / 2, y + y_ext / 2]])
                     input_label = np.array([1])
 
                     masks, scores, logits = self.predictor.predict(
@@ -2239,15 +2257,17 @@ class SAM_annotations():
                     # plt.show()
 
                     if state in self.final_annotations:
-                        self.final_annotations[state].append({"segmentation": encoded, "area": parea, "iscrowd": 0, "image_id":
+                        self.final_annotations[state].append(
+                            {"segmentation": encoded, "area": parea, "iscrowd": 0, "image_id":
                                 self.COCO_info[filename]["image_id"], "bbox": self.COCO_info[filename]["bbox"],
                              "category_id": self.COCO_info[filename]["category_id"],
                              "id": self.COCO_info[filename]["id"]})
                     else:
-                        self.final_annotations[state] = [{"segmentation": encoded, "area": parea, "iscrowd": 0, "image_id":
-                            self.COCO_info[filename]["image_id"], "bbox": self.COCO_info[filename]["bbox"],
-                         "category_id": self.COCO_info[filename]["category_id"], "id": self.COCO_info[filename]["id"]}]
-
+                        self.final_annotations[state] = [
+                            {"segmentation": encoded, "area": parea, "iscrowd": 0, "image_id":
+                                self.COCO_info[filename]["image_id"], "bbox": self.COCO_info[filename]["bbox"],
+                             "category_id": self.COCO_info[filename]["category_id"],
+                             "id": self.COCO_info[filename]["id"]}]
 
         for pkey, pvalue in self.final_annotations.items():
             temp_output_annot = self.COCO_info_all[pkey]
@@ -2262,7 +2282,6 @@ class SAM_annotations():
         # plt.imshow(image)
         # plt.axis('on')
         # plt.show()
-
 
     def show_anns(anns):
         if len(anns) == 0:

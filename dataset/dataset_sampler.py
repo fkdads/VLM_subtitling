@@ -6,6 +6,21 @@ import pathlib
 # import dlib
 
 if __name__ == '__main__':
+    import torch
+
+    # Check if CUDA is available
+    if torch.cuda.is_available():
+        # Get the CUDA device count
+        device_count = torch.cuda.device_count()
+        print(f"Found {device_count} CUDA device(s) available.")
+
+        # Get information about each CUDA device
+        for i in range(device_count):
+            device = torch.cuda.get_device_name(i)
+            capability = torch.cuda.get_device_capability(i)
+            print(f"Device {i}: {device}, Compute Capability: {capability}")
+    else:
+        print("CUDA is not available. PyTorch is running on CPU.")
 
     args = __init_arg_parse()
 
