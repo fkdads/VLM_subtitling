@@ -22,7 +22,8 @@ Please ensure to have installed _**C++ Visual Studio Redistribution package**_ t
 _face_recognition_ on Windows. Since _face_recognition_ and _segment_anything_ modules support GPU usage, you can reduce
 runtimes significantly. Code and requirements.txt file refer to **CUDA Toolkit V.11.8** and **cuDNN 9.0.0**.
 You should also set up [cmake](https://cmake.org/download/) in case you want to leverage CUDA and you do not have 
-access to a dlib version with CUDA 11.8. You can follow the bash script 
+access to a dlib version with CUDA 11.8. You can use the bash script `dataset/dlib_setup_with_cuda_support.sh` to
+install dlib with CUDA support manually, after setting up CUDA and cuDNN.
 
 The provided code is tested on Windows 11.
 
