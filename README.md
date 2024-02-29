@@ -20,7 +20,9 @@ To set up the environment, we recommend to use a virtual environment based on _*
 `requirements.txt`.
 Please ensure to have installed _**C++ Visual Studio Redistribution package**_ to install _segment_anything_ and 
 _face_recognition_ on Windows. Since _face_recognition_ and _segment_anything_ modules support GPU usage, you can reduce
-runtimes significantly. Code and requirements.txt file refer to **CUDA Toolkit V.11.8**.
+runtimes significantly. Code and requirements.txt file refer to **CUDA Toolkit V.11.8** and **cuDNN 9.0.0**.
+You should also set up [cmake](https://cmake.org/download/) in case you want to leverage CUDA and you do not have 
+access to a dlib version with CUDA 11.8. You can follow the bash script 
 
 The provided code is tested on Windows 11.
 
@@ -44,7 +46,7 @@ You will be able to find instructions for gathering the subtitle files from vide
 
 The script needs the following data to be organized as follows:
 
-- Provide the XML-based subtitle file in ``\dataset\subtitles\subtitle.xml`` (you can also provide it somewhere else
+- Provide the XML-based subtitle file in ``\dataset\subtitles\subtitle.xml`` (you [subtitle_placement](annotation_samples%2Fsubtitle_placement)can also provide it somewhere else
   and set path with input parameter --stp)
 - Provide video file in ``\dataset\video\video.mp4`` (you can also store the video in any other directory and provide
   its location via --vp input parameter)

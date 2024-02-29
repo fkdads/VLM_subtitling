@@ -245,7 +245,7 @@ def format_frames(frame, output_size):
     # return frame
 
 
-class subtitle_placement:
+class SubtitlePlacement:
     @staticmethod
     def _check_args_init(args: argparse.Namespace) -> None:
         """
@@ -579,7 +579,7 @@ class subtitle_placement:
                 else:
                     len_frames = len(frames)
 
-                if len_frames >= 19:
+                if len_frames >= min(19, self.n_frames):
                     # list_return = GLIP_coco_like_helper.find_faces([zp[:, :, ::-1] for zp in frames.copy()], subtitles,
                     if self.overlay_frames > 1 or self.frames_per_step > 1:
                         list_return = GLIP_coco_like_helper.find_faces(frames_face_recognition.copy(), subtitles,

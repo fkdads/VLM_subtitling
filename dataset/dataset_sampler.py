@@ -6,26 +6,31 @@ import pathlib
 # import dlib
 
 if __name__ == '__main__':
-    import torch
+    import torch, dlib
 
     # Check if CUDA is available
     if torch.cuda.is_available():
         # Get the CUDA device count
         device_count = torch.cuda.device_count()
-        print(f"Found {device_count} CUDA device(s) available.")
+        print(f"Torch: Found {device_count} CUDA device(s) available.")
 
         # Get information about each CUDA device
         for i in range(device_count):
             device = torch.cuda.get_device_name(i)
             capability = torch.cuda.get_device_capability(i)
-            print(f"Device {i}: {device}, Compute Capability: {capability}")
+            print(f"Torch: Device {i}: {device}, Compute Capability: {capability}")
     else:
-        print("CUDA is not available. PyTorch is running on CPU.")
+        print("Torch: CUDA is not available. PyTorch is running on CPU.")
+
+    if dlib.DLIB_USE_CUDA:
+        print("dlib: CUDA support is enabled.")
+    else:
+        print("dlib: CUDA support is not enabled.")
 
     args = __init_arg_parse()
 
     if args.task == "subtitle_placement":
-        from dataset.helper.dataset_sampler_helper import subtitle_placement
+        from dataset.helper.dataset_sampler_helper import SubtitlePlacement as subtitle_placement
 
         subtitle_placement._check_args_init(args)
         subtitle_placement = subtitle_placement(video_path=args.video_path, subtitles_path=args.subtitles_path,
