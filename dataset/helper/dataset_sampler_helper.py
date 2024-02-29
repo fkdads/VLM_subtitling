@@ -18,8 +18,97 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import argparse
 import sys
 
+def __init_arg_parse() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Provide input parameters")
+
+    parser.add_argument("--crop", dest="crop_video", action="store_true", default=False,
+                        help='define if black borders should be removed from Video (longer runtime)')
+
+    parser.add_argument("--vo", dest="video_offset", default=None, action="store", type=float,
+                        help='define video offset hardcoded. Please provide either --vo or --vd')
+
+    parser.add_argument("--vd", dest="video_duration", default=None, action="store", type=float,
+                        help='define video duration hardcoded. Please provide either --vo or --vd')
+
+    parser.add_argument("--vp", dest="video_path", default=str(pathlib.Path().resolve().
+                                                                             joinpath("video",
+                                                                                      "video.mp4"
+                                                                                      )),
+                        action="store", type=str,
+                        help='define offset hardcoded. Please provide either --vo or --vd')
+
+    parser.add_argument("--bs", dest="batch_size", default=1, action="store", type=int,
+                        help='define batch size')
+
+    parser.add_argument("--rf", dest="return_frames", default=False, action="store_true",
+                        help='defines if frames with subtitles or frames with separate target position vector is '
+                             'returned')
+
+    parser.add_argument("--nf", dest="n_frames", default=200, action="store", type=int,
+                        help='define number of frames')
+
+    parser.add_argument("--box", dest="output_box", default=False, action="store_true",
+                        help='defines if frames with boxes (black) for subtitle position are displayed instead of '
+                             'subtitles')
+
+    parser.add_argument("--td", dest="train_data", default=False, action="store_true",
+                        help='defines if training or test dataset should be created')
+
+    parser.add_argument("--tv", dest="validation_data", default=False, action="store_true",
+                        help='defines if training or test dataset should be created')
+
+    parser.add_argument("--rc", dest="return_captions", default=False, action="store_true",
+                        help='defines if captions json file should be provided')
+
+    parser.add_argument("--riwa", dest="remove_images_without_annotations", default=False,
+                        action="store_true", help='defines if images in json files should only contain image '
+                                                  'references having any annotation (or caption)')
+
+    parser.add_argument("--stp", dest="subtitles_path", default=str(pathlib.Path().resolve().
+                                                                                  joinpath("subtitles",
+                                                                                           "subtitles.xml")),
+                        action="store", type=str, help="Provide path to subtitles")
+
+    parser.add_argument("--frc", dest="fractions", default=[0.75, 0.15, 0.1], type=float, nargs="+",
+                        help="List of values to define fractions of train, val and test")
+
+    parser.add_argument("--tsk", dest="task", default="subtitle_placement", type=str, action="store")
+
+    parser.add_argument("--tkn", dest="task_name", type=str, default="subtitle_position_boxes",
+                        action="store", help="define task name to store data under")
+
+    parser.add_argument("--emd", dest="extract_middle_and_default", action="store_true", default=False,
+                        help="Defines if only positioned (according to subtitle file) and middle positioned framed "
+                             "will be returned or another directory will be provided, that contains uninpainted frame "
+                             "and positioned frame as well. Can only be True if extract_middle_and_default is True, "
+                             "too.")
+
+    parser.add_argument("--frs", dest="frame_step", type=int, action="store", default=6)
+
+    parser.add_argument("--fps", dest="frames_per_step", type=int, action="store", default=1)
+
+    parser.add_argument("--mos", dest="dot_middle_of_subtitle_box", action="store_true", default=False)
+
+    parser.add_argument("--fsp", dest="fixed_start_point", type=int, action="store", default=100)
+
+    parser.add_argument("--ean", dest="extract_annotations", action="store_true", default=True)
+
+    parser.add_argument("--overlay_frames", dest="overlay_frames", type=int, default=1)
+
+    parser.add_argument("--overlay_frames_skip", dest="overlay_frames_skip", type=int, default=1)
+
+    parser.add_argument("--anno", dest="annotations",
+                        default=[
+                            r"D:\Master_Thesis_data\Active_Speaker\data\train"
+                            r"\result.json",
+                            r"D:\Master_Thesis_data\Active_Speaker\data\val\result.json",
+                            r"D:\Master_Thesis_data\Active_Speaker\data\test\result.json"
+                        ],
+                        type=str, nargs="+", help="List of annotations paths (train, val, test)")
+    return parser.parse_args()
 def separate_audio_from_video(path: str = r"C:\Users\Fabia\Videos\Captures\Test Cyrill.mp4",
                               path_target: str = r"C:\Users\Fabia\Videos\Captures\Test_Cyrill.wav"):
     assert path != "", "path for separate_audio_from_video is empty"
@@ -154,7 +243,37 @@ def format_frames(frame, output_size):
 
 
 class subtitle_placement:
+    @staticmethod
+    def _check_args_init(args: argparse.Namespace) -> None:
+        """
 
+        :rtype: None
+        """
+        assert isinstance(args.video_path, str) and len(args.video_path) > 0, "Please provide valid video_path"
+        assert isinstance(args.subtitles_path, str) and len(args.subtitles_path) > 0, ("Please provide "
+                                                                                       "valid subtitles_path")
+        assert isinstance(args.task_name, str) and len(args.task_name) > 0, "Please provide valid task_name"
+        assert ((isinstance(args.video_offset, float) and args.video_offset >= 0) or
+                (args.video_offset is None and isinstance(args.video_duration, float) and args.video_duration > 0)), \
+            "Please provide valid video_duration or video_offset"
+        assert isinstance(args.n_frames, int) and args.n_frames > 0, "Please provide valid n_frames"
+        assert ((isinstance(args.video_duration, float) and args.video_duration >= 0) or
+                (args.video_duration is None and isinstance(args.video_offset, float) and args.video_offset > 0)), \
+            "Please provide valid video_duration or video_offset"
+        assert isinstance(args.frame_step, str) and len(args.frame_step) > 0, "Please provide valid frame_step"
+        assert isinstance(args.fractions, str) and len(args.fractions) > 0, "Please provide valid fractions"
+        assert isinstance(args.extract_middle_and_default, str) and len(args.extract_middle_and_default) > 0, \
+            "Please provide valid extract_middle_and_default"
+        assert isinstance(args.dot_middle_of_subtitle_box, str) and len(args.dot_middle_of_subtitle_box) > 0, \
+            "Please provide valid dot_middle_of_subtitle_box"
+        assert isinstance(args.fixed_start_point, str) and len(args.fixed_start_point) > 0, ("Please provide valid "
+                                                                                             "fixed_start_point")
+        assert isinstance(args.extract_annotations, str) and len(args.extract_annotations) > 0, ("Please provide valid "
+                                                                                                 "extract_annotations")
+        assert isinstance(args.overlay_frames_skip, str) and len(args.overlay_frames_skip) > 0, ("Please provide valid "
+                                                                                                 "overlay_frames_skip")
+        assert isinstance(args.frames_per_step, str) and len(args.frames_per_step) > 0, ("Please provide valid "
+                                                                                         "frames_per_step")
     def __init_annotation_extract(self):
         self.annotations = {"train": [], "val": [], "test": []}
         self.annotation_info = {
