@@ -120,7 +120,18 @@ To build the dataset, you can use the following command lines:
 To get insights on the available input parameters use the default help command in combination with the
 *dataset_sampler.py* file.
 
-#### Manual Steps
+The first output is structured as follows:
+- __A: frames containing the positioned (centered) marker
+- _A: raw frames
+- A: frames with default subtitle position marker
+- B: frames with target position marker
+- _B: frames with subtitle
+- jsons: annotation files derived from input data
+- pixelmaps: subtitle placement pixelmap data
+
+The folders above contain the sub-folders train, test and val, according to the input parameter (default: 0.75%, 0.15%, 0.1%).
+
+#### First Manual Steps
 
 To get the final dataset, you need to label the active speaker manually with [label-studio](https://labelstud.io/)
 according to [COCO format](https://cocodataset.org/#format-data). You also need to take care of skipping images with
@@ -131,6 +142,8 @@ We used a final dataset of 2300 instances:
 - 1725 (75%) train
 - 345 (15%) val
 - 230 (10%) test
+
+After annotating and filtering the images you need to extract the data from label-studio.
 
 #### Create Pixelmaps for Active Speaker Experiments
 

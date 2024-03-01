@@ -103,10 +103,10 @@ def __init_arg_parse() -> argparse.Namespace:
 
     parser.add_argument("--anno", dest="annotations",
                         default=[
-                            r"D:\Master_Thesis_data\Active_Speaker\dataset_final\train"
+                            r"D:\Master_Thesis_data\Active_Speaker\dataset_processed\train"
                             r"\result.json",
-                            r"D:\Master_Thesis_data\Active_Speaker\dataset_final\val\result.json",
-                            r"D:\Master_Thesis_data\Active_Speaker\dataset_final\test\result.json"
+                            r"D:\Master_Thesis_data\Active_Speaker\dataset_processed\val\result.json",
+                            r"D:\Master_Thesis_data\Active_Speaker\dataset_processed\test\result.json"
                         ],
                         type=str, nargs="+", help="List of annotations paths (train, val, test)")
     return parser.parse_args()
@@ -365,7 +365,7 @@ class SubtitlePlacement:
         # Define task name, that will affect output directory
         self.task_name = kwargs.pop("task_name", "subtitle_position_boxes")
         # Determine output path according to current directory and task name
-        self.output_path = str(pathlib.Path().resolve().joinpath("data", self.task_name))
+        self.output_path = str(pathlib.Path().resolve().joinpath("dataset_processed", self.task_name))
         # Defines if only positioned (according to subtitle file) and middle positioned framed will be returned or
         # another directory will be provided, that contains uninpainted frame and positioned frame as well. Can only be
         # True if extract_middle_and_default is True, too.
@@ -1088,7 +1088,7 @@ class GLIP_coco_like:
 
         cap.set(cv2.CAP_PROP_POS_FRAMES, start)
 
-        name_fixed = str(pathlib.Path().resolve().joinpath("data", re.sub(r" +", "_",
+        name_fixed = str(pathlib.Path().resolve().joinpath("dataset_processed", re.sub(r" +", "_",
                                                                           video_path.split("/")[-1].split(".")[
                                                                               0].replace(
                                                                               "-", ""))))
@@ -1737,7 +1737,7 @@ def create_input_data(video_path: str, subtitles_array: np.ndarray, used_start_p
         json_dict_array = []
     else:
         final_list_captions = []
-    name_fixed = str(pathlib.Path().resolve().joinpath("data", re.sub(r" +", "_",
+    name_fixed = str(pathlib.Path().resolve().joinpath("dataset_processed", re.sub(r" +", "_",
                                                                       video_path.split("/")[-1].split(".")[0].replace(
                                                                           "-", ""))))
     # if output_frames_instructions_middle_positioned
@@ -1886,7 +1886,7 @@ def create_input_data(video_path: str, subtitles_array: np.ndarray, used_start_p
                         # final_list_captions.append(tf.constant(1))
                 i += 1
                 if safe_training_data and i % 1000 == 0:
-                    np.savez_compressed(str(pathlib.Path().resolve().joinpath("data", "file_" + str(i))),
+                    np.savez_compressed(str(pathlib.Path().resolve().joinpath("dataset_processed", "file_" + str(i))),
                                         np.asarray(final_list_input),
                                         np.asarray(final_list_target))
                     final_list_frames = []
