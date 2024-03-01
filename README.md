@@ -10,6 +10,9 @@ scripts to reproduce our results.
 > able to reproduce our results. A great deal of manual effort will be involved in creating the data set. Future releases
 > are possible, which will make the repository easier to use.
 
+
+# BILD EINFÜGEN
+
 ## Updates
 
 - 02/24/2024: Initial release.
@@ -25,7 +28,9 @@ You should also set up [cmake](https://cmake.org/download/) in case you want to 
 access to a dlib version with CUDA 11.8. You can use the bash script `dataset/dlib_setup_with_cuda_support.sh` to
 install dlib with CUDA support manually, after setting up CUDA and cuDNN.
 
-The provided code is tested on Windows 11.
+Label-studio requires PostgreSQL version 11.5 or SQLite version 3.35 or higher.
+
+The provided code is tested on Windows 11 and with Python 3.10.0.
 
 ## Tasks and Experiments
 
@@ -68,35 +73,41 @@ We will distinguish between building the following datasets:
 | 2          | Three Frames Overlapped | Dataset consisting of input frames that stack three consecutive frames into a single frame                                                                                                              | All three frames overlapped experiments |
 | 3          | Three Frames Voting     | Dataset sampling three individual, consecutive frames, that will be evaluated to determine majority consensus. While the frames are stacked in Dataset 2, they provide three distinctive samples files. | All three frames voting experiments |
 
-### Build Initial Dataset
+#### Build Initial Dataset
 To build the dataset, you can use the following command lines:
 
 - **Dataset - Single Frame**: ``--vo
-  7
-  --box
-  --nf
-  2500
-  --tkn
-  subtitle_position_boxes_middle_of_subtitle
-  --fsp
-  1650
-  --mos
-  --emd``
+7
+--box
+--nf
+25
+--tkn
+subtitle_position_boxes_middle_of_subtitle
+--fsp
+1650
+--mos
+--emd
+--vp
+"D:\Video Recordings\Video1.mp4"
+--stp
+"D:\Video Recordings\subtitles.xml"``
 - **Dataset - Three Frames Overlapped**: ``--vo
-  7
-  --box
-  --nf
-  2500
-  --tkn
-  subtitle_position_boxes_middle_of_subtitle_overlapped
-  --fsp
-  1650
-  --mos
-  --emd
-  --overlay_frames
-  3
-  --overlay_frames_skip
-  1``
+7
+--box
+--nf
+25
+--tkn
+subtitle_position_boxes_middle_of_subtitle_overlapped
+--fsp
+1650
+--mos
+--emd
+--vp
+"E:\OneDrive - IU International University of Applied Sciences\Vorlesungen\Master Thesis\Video Recordings\Netflix - SWAT - train.mp4"
+--stp
+"E:\OneDrive - IU International University of Applied Sciences\Vorlesungen\Master Thesis\Video Recordings\netflix_sample.xml"
+--overlay_frames 3 
+--overlay_frames_skip 1``
 - **Dataset - Three Frames Voting**: ``--vo
   7
   --box
@@ -135,7 +146,9 @@ The folders above contain the sub-folders train, test and val, according to the 
 
 To get the final dataset, you need to label the active speaker manually with [label-studio](https://labelstud.io/)
 according to [COCO format](https://cocodataset.org/#format-data). You also need to take care of skipping images with
-off-screen speaker. At the end you can export the filtered dataset with annotation information.
+off-screen speaker. At the end you can export the filtered dataset with annotation information. Use _Object Detection
+with Bounding Boxes_ as labeling setup. We recommend to use `spokesman` as label for the active speaker task. You may
+also want to label listener to challenge our active speaker detection results by leveraging further information.
 
 We used a final dataset of 2300 instances:
 
@@ -143,7 +156,8 @@ We used a final dataset of 2300 instances:
 - 345 (15%) val
 - 230 (10%) test
 
-After annotating and filtering the images you need to extract the data from label-studio.
+After annotating and filtering the images you need to extract the data from label-studio in COCO format.
+Extract it to a folder of your choice, containing the labeled data in sub-folders: test, train, val.
 
 #### Create Pixelmaps for Active Speaker Experiments
 

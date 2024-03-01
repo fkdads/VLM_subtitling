@@ -76,7 +76,7 @@ def __init_arg_parse() -> argparse.Namespace:
     parser.add_argument("--frc", dest="fractions", default=[0.75, 0.15, 0.1], type=float, nargs="+",
                         help="List of values to define fractions of train, val and test")
 
-    parser.add_argument("--tsk", dest="task", default="subtitle_placement", type=str, action="store")
+    parser.add_argument("--tsk", dest="task", default="dataset_generation_1", type=str, action="store")
 
     parser.add_argument("--tkn", dest="task_name", type=str, default="subtitle_position_boxes",
                         action="store", help="define task name to store data under")

@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     args = __init_arg_parse()
 
-    if args.task == "subtitle_placement":
+    if args.task == "dataset_generation_1":
         from dataset.helper.dataset_sampler_helper import SubtitlePlacement as subtitle_placement
 
         subtitle_placement._check_args_init(args)
@@ -46,6 +46,8 @@ if __name__ == '__main__':
                                                 overlay_frames=args.overlay_frames,
                                                 frames_per_step=args.frames_per_step)
         subtitle_placement.create_input_data()
+    elif args.task == "dataset_generation_2":
+        pass
     elif args.task == "SAM":
         from dataset.helper.dataset_sampler_helper import SAM_annotations
 
