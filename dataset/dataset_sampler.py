@@ -51,7 +51,6 @@ if __name__ == '__main__':
         def filter_dataset(path_jsons, path_dataset, output_path):
             import os
             import json
-            import shutil
             # Create a dictionary to store data based on folder names
             data_dict = {}
 
@@ -63,37 +62,45 @@ if __name__ == '__main__':
                         folder_name = os.path.basename(root)
                         with open(os.path.join(root, file), 'r') as json_file:
                             data = json.load(json_file)
-
+                            data = ["-".join(el["file_name"].split("-")[1:]) for el in data["images"]]
                             if base_folder not in data_dict:
                                 data_dict[base_folder] = {}
 
                             if folder_name not in data_dict[base_folder]:
                                 data_dict[base_folder][folder_name] = []
-                            data_dict[base_folder][folder_name].append(data)
+                            data_dict[base_folder][folder_name].extend(data)
 
             # Iterate over subfolders in path_dataset
-            print(all(folder in os.listdir(path_dataset) for folder in ["single", "overlapped", "voting"]))
-            assert all(folder in os.listdir(path_dataset) for folder in ["single", "overlapped", "voting"]), (
+            assert any("single" in folder_name for folder_name in os.listdir(path_dataset)) and \
+                   any("overlapped" in folder_name for folder_name in os.listdir(path_dataset)) and \
+                   any("voting" in folder_name for folder_name in os.listdir(path_dataset)), (
                 "Please follow the instructions in the README.md file. "
                 "Provide three separate folders for single, overlapping, and voting experiment."
             )
 
-            for root, dirs, files in os.walk(path_jsons):
-                for file in files:
-                    if dirs in data_dict:
-                        # Create folder in output_path if it doesn't exist
-                        output_folder = os.path.join(output_path, folder_name)
-                        if not os.path.exists(output_folder):
-                            os.makedirs(output_folder)
+            for root, dirs, files in os.walk(os.path.join(path_dataset, [folder_name for folder_name in
+                                                                         os.listdir(path_dataset) if "single" in
+                                                                                                     folder_name][0])):
+                print(root)
+                print(dirs)
+                print(files)
 
-                        # Iterate over files in the subfolder
-                        for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
-                            # Perform filtering based on data in data_dict
-                            filtered_data = [data for data in data_dict[folder_name] if data[
-                                'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data
-                            # Write filtered data to output_path
-                            with open(os.path.join(output_folder, file_name), 'w') as output_file:
-                                json.dump(filtered_data, output_file)
+                if root.endswith("\\A") or root.endswith("B") or root.endswith("_A"):
+                    for file in files:
+                        if dirs in data_dict:
+                            # Create folder in output_path if it doesn't exist
+                            output_folder = os.path.join(output_path, folder_name)
+                            if not os.path.exists(output_folder):
+                                os.makedirs(output_folder)
+
+                            # Iterate over files in the subfolder
+                            for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
+                                # Perform filtering based on data in data_dict
+                                filtered_data = [data for data in data_dict[folder_name] if data[
+                                    'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data
+                                # Write filtered data to output_path
+                                with open(os.path.join(output_folder, file_name), 'w') as output_file:
+                                    json.dump(filtered_data, output_file)
 
 
         # Example usage:
