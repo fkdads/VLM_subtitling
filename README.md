@@ -82,7 +82,7 @@ To build the dataset, you can use the following command lines:
 --nf
 25
 --tkn
-subtitle_position_boxes_middle_of_subtitle
+subtitle_position_boxes_middle_of_subtitle_single
 --fsp
 1650
 --mos
@@ -122,11 +122,12 @@ subtitle_position_boxes_middle_of_subtitle_overlapped
   --fps
   3``
 
-> **Note:** You need to adjust the parameters --vo and --fsp before applying the script to your video file. The --vo (
-> video offset) parameter offers the possibility to provide the offset between video recording start and subtitle file 
-> reference start point in seconds. Please determine manually the offset and provide it, since it is important for the 
-> quality of the subtitle information The --fsp (fixed_start_point) gives the flexibility to define the start point 
-> of the video sampling to skip introduction scenes.
+> **Note:** Please keep the ending of the task names (_single, _overlapped, _voting), otherwise the dataset_sampler 
+> script will fail for the next step. You also need to adjust the parameters --vo and --fsp before applying the script 
+> to your video file. The --vo (video offset) parameter offers the possibility to provide the offset between video 
+> recording start and subtitle file reference start point in seconds. Please determine manually the offset and provide 
+> it, since it is important for the quality of the subtitle information The --fsp (fixed_start_point) gives the 
+> flexibility to define the start point of the video sampling to skip introduction scenes. 
 
 To get insights on the available input parameters use the default help command in combination with the
 *dataset_sampler.py* file.

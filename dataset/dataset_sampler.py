@@ -47,7 +47,65 @@ if __name__ == '__main__':
                                                 frames_per_step=args.frames_per_step)
         subtitle_placement.create_input_data()
     elif args.task == "dataset_generation_2":
-        pass
+
+        def filter_dataset(path_jsons, path_dataset, output_path):
+            import os
+            import json
+            import shutil
+            # Create a dictionary to store data based on folder names
+            data_dict = {}
+
+            # Iterate over json files in path_jsons
+            for root, dirs, files in os.walk(path_jsons):
+                base_folder = root.replace(path_jsons, "").replace(os.path.basename(root), "").strip("\\")
+                for file in files:
+                    if file.endswith('.json'):
+                        folder_name = os.path.basename(root)
+                        with open(os.path.join(root, file), 'r') as json_file:
+                            data = json.load(json_file)
+
+                            if base_folder not in data_dict:
+                                data_dict[base_folder] = {}
+
+                            if folder_name not in data_dict[base_folder]:
+                                data_dict[base_folder][folder_name] = []
+                            data_dict[base_folder][folder_name].append(data)
+
+            # Iterate over subfolders in path_dataset
+            print(all(folder in os.listdir(path_dataset) for folder in ["single", "overlapped", "voting"]))
+            assert all(folder in os.listdir(path_dataset) for folder in ["single", "overlapped", "voting"]), (
+                "Please follow the instructions in the README.md file. "
+                "Provide three separate folders for single, overlapping, and voting experiment."
+            )
+
+            for root, dirs, files in os.walk(path_jsons):
+                for file in files:
+                    if dirs in data_dict:
+                        # Create folder in output_path if it doesn't exist
+                        output_folder = os.path.join(output_path, folder_name)
+                        if not os.path.exists(output_folder):
+                            os.makedirs(output_folder)
+
+                        # Iterate over files in the subfolder
+                        for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
+                            # Perform filtering based on data in data_dict
+                            filtered_data = [data for data in data_dict[folder_name] if data[
+                                'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data
+                            # Write filtered data to output_path
+                            with open(os.path.join(output_folder, file_name), 'w') as output_file:
+                                json.dump(filtered_data, output_file)
+
+
+        # Example usage:
+        path_jsons = r'G:\Coding\VLM_subtitling\dataset_labeled'
+        path_dataset = 'G:\Coding\VLM_subtitling\dataset_processed'
+        output_path = "\\".join(args.video_path.split("\\")[:-1]) + r"\dataset_final"
+        filter_dataset(path_jsons, path_dataset, output_path)
+
+        exit(-1)
+        path_coco_annotations = args.annotations
+        path_images = args.video_path
+        output_path = "\\".join(args.video_path.split("\\")[:-1]) + r"\dataset_final"
     elif args.task == "SAM":
         from dataset.helper.dataset_sampler_helper import SAM_annotations
 
