@@ -158,7 +158,29 @@ We used a final dataset of 2300 instances:
 - 230 (10%) test
 
 After annotating and filtering the images you need to extract the data from label-studio in COCO format.
-Extract it to a folder of your choice, containing the labeled data in sub-folders: test, train, val.
+Extract it to a folder of your choice, containing the labeled data in sub-folders single, overlapped and voting. The 
+folders need to be named the same as the task names defined in the step above. The data needs to be split again in
+test, train, val, looking like follows:
+- .\dataset_labeled\subtitle_position_boxes_middle_of_subtitle_overlapped
+  - test
+    - result.json
+    - images
+      - image06.jpg
+      - image07.jpg
+  - train
+    - result.json
+    - images
+      - image01.jpg
+      - image02.jpg
+  - val
+    - result.json
+    - images
+      - image03.jpg
+      - image04.jpg
+- .\dataset_labeled\subtitle_position_boxes_middle_of_subtitle_single
+  - ...
+- .\dataset_labeled\subtitle_position_boxes_middle_of_subtitle_voting
+  - ...
 
 #### Create Pixelmaps for Active Speaker Experiments
 

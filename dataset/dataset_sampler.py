@@ -48,7 +48,7 @@ if __name__ == '__main__':
         subtitle_placement.create_input_data()
     elif args.task == "dataset_generation_2":
 
-        def filter_dataset(path_jsons, path_dataset, output_path):
+        def filter_dataset(path_jsons, path_dataset, output_path, rebalance:bool = True):
             import os
             import json
             # Create a dictionary to store data based on folder names
@@ -69,6 +69,8 @@ if __name__ == '__main__':
                             if folder_name not in data_dict[base_folder]:
                                 data_dict[base_folder][folder_name] = []
                             data_dict[base_folder][folder_name].extend(data)
+            if rebalance:
+                raise NotImplementedError("OhOh")
 
             # Iterate over subfolders in path_dataset
             assert any("single" in folder_name for folder_name in os.listdir(path_dataset)) and \
@@ -81,12 +83,19 @@ if __name__ == '__main__':
             for root, dirs, files in os.walk(os.path.join(path_dataset, [folder_name for folder_name in
                                                                          os.listdir(path_dataset) if "single" in
                                                                                                      folder_name][0])):
-                print(root)
-                print(dirs)
-                print(files)
 
-                if root.endswith("\\A") or root.endswith("B") or root.endswith("_A"):
+                if root.split("\\")[-2] == "\\A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
                     for file in files:
+                        if root.split("\\")[-2] == "A":
+                            pass
+                        elif root.split("\\")[-2] == "B":
+                            if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
+                                                                         os.listdir(path_dataset) if "single" in
+                                                                                                     folder_name][0]]:
+                                pass
+                        else:
+                            pass
+
                         if dirs in data_dict:
                             # Create folder in output_path if it doesn't exist
                             output_folder = os.path.join(output_path, folder_name)
