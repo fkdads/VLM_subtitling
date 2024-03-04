@@ -48,9 +48,13 @@ if __name__ == '__main__':
         subtitle_placement.create_input_data()
     elif args.task == "dataset_generation_2":
 
-        def filter_dataset(path_jsons, path_dataset, output_path, rebalance:bool = True):
+        def filter_dataset(path_jsons, path_dataset, output_path, rebalance: list = [0.75, 0.15, 0.1],
+                           ignore_different: bool = False):
             import os
-            import json
+            import json, copy
+            assert len(rebalance) == 3, "The list should have exactly three values."
+            assert sum(rebalance) == 1, "The sum of the values in the list should equal 1."
+
             # Create a dictionary to store data based on folder names
             data_dict = {}
 
@@ -69,9 +73,63 @@ if __name__ == '__main__':
                             if folder_name not in data_dict[base_folder]:
                                 data_dict[base_folder][folder_name] = []
                             data_dict[base_folder][folder_name].extend(data)
-            if rebalance:
-                raise NotImplementedError("OhOh")
 
+            test = 0
+            train = 0
+            val = 0
+            sum_instances = - 1
+
+            data_dict_temp = copy.deepcopy(data_dict)
+            for pkey, pvalue in data_dict.items():
+                final_files_list = []
+                try:
+                    if "test" in data_dict[pkey]:
+                        test = len(data_dict[pkey]["test"])
+                        final_files_list.extend(data_dict[pkey]["test"])
+                    if "train" in data_dict[pkey]:
+                        train = len(data_dict[pkey]["train"])
+                        final_files_list.extend(data_dict[pkey]["train"])
+                    if "val" in data_dict[pkey]:
+                        val = len(data_dict[pkey]["val"])
+                        final_files_list.extend(data_dict[pkey]["val"])
+                except:
+                    raise ValueError("Unexpected data structure found")
+
+                if sum_instances > 0:
+                    if ignore_different is False:
+                        assert sum_instances == test + train + val, (f"You have sorted out different frames in the "
+                                                                     f"respective datasets during manual annotation. "
+                                                                     f"This results in different data records. "
+                                                                     f"Please set the parameter ignore_different to "
+                                                                     f"True to suppress this error. Key {pkey} differs "
+                                                                     f"in {abs(sum_instances - (test + train + val))}")
+
+                sum_instances = test + train + val
+                train_rebalance = int(sum_instances * rebalance[0])
+                val_rebalance = int(sum_instances * rebalance[1])
+                test_rebalance = int(sum_instances * rebalance[2])
+
+                assert train_rebalance + val_rebalance + test_rebalance <= sum_instances, ("Logic issue, please fix "
+                                                                                           "code.")
+
+                train_images = sorted(final_files_list[:train_rebalance + val_rebalance + test_rebalance])[
+                              :train_rebalance]
+                val_images = sorted(final_files_list[:train_rebalance + val_rebalance + test_rebalance])[
+                              train_rebalance:train_rebalance+val_rebalance]
+                test_images = sorted(final_files_list[:train_rebalance + val_rebalance + test_rebalance])[
+                              train_rebalance + val_rebalance:]
+
+                data_dict_temp[pkey]["test"] = test_images
+                data_dict_temp[pkey]["val"] = val_images
+                data_dict_temp[pkey]["train"] = train_images
+
+
+                # for ppkey, ppvalue in pvalue.items():
+
+                # for pppkey, pppvalue in ppvalue.items():
+
+            data_dict = data_dict_temp.copy()
+            del data_dict_temp
             # Iterate over subfolders in path_dataset
             assert any("single" in folder_name for folder_name in os.listdir(path_dataset)) and \
                    any("overlapped" in folder_name for folder_name in os.listdir(path_dataset)) and \
@@ -90,8 +148,8 @@ if __name__ == '__main__':
                             pass
                         elif root.split("\\")[-2] == "B":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
-                                                                         os.listdir(path_dataset) if "single" in
-                                                                                                     folder_name][0]]:
+                                                                           os.listdir(path_dataset) if "single" in
+                                                                                                       folder_name][0]]:
                                 pass
                         else:
                             pass
