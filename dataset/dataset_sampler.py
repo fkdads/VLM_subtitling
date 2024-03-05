@@ -86,12 +86,18 @@ if __name__ == '__main__':
                     if "test" in data_dict[pkey]:
                         test = len(data_dict[pkey]["test"])
                         final_files_list.extend(data_dict[pkey]["test"])
+                    else:
+                        test = 0
                     if "train" in data_dict[pkey]:
                         train = len(data_dict[pkey]["train"])
                         final_files_list.extend(data_dict[pkey]["train"])
+                    else:
+                        train = 0
                     if "val" in data_dict[pkey]:
                         val = len(data_dict[pkey]["val"])
                         final_files_list.extend(data_dict[pkey]["val"])
+                    else:
+                        val = 0
                 except:
                     raise ValueError("Unexpected data structure found")
 
@@ -101,13 +107,25 @@ if __name__ == '__main__':
                                                                      f"respective datasets during manual annotation. "
                                                                      f"This results in different data records. "
                                                                      f"Please set the parameter ignore_different to "
-                                                                     f"True to suppress this error. Key {pkey} differs "
+                                                                     f"True to suppress this error and to sample based "
+                                                                     f"on active speaker detection for single "
+                                                                     f"experiment. Key {pkey} differs "
                                                                      f"in {abs(sum_instances - (test + train + val))}")
 
                 sum_instances = test + train + val
-                train_rebalance = int(sum_instances * rebalance[0])
-                val_rebalance = int(sum_instances * rebalance[1])
-                test_rebalance = int(sum_instances * rebalance[2])
+                if train > 0:
+                    train_rebalance = int(sum_instances * rebalance[0])
+                else:
+                    train_rebalance = 0
+                if val > 0:
+                    val_rebalance = int(sum_instances * rebalance[1])
+                else:
+                    val_rebalance = 0
+
+                if sum_instances == test:
+                    test_rebalance = test
+                else:
+                    test_rebalance = int(sum_instances * rebalance[2])
 
                 assert train_rebalance + val_rebalance + test_rebalance <= sum_instances, ("Logic issue, please fix "
                                                                                            "code.")
@@ -138,13 +156,15 @@ if __name__ == '__main__':
                 "Provide three separate folders for single, overlapping, and voting experiment."
             )
 
+            copy_dict = {}
             for root, dirs, files in os.walk(os.path.join(path_dataset, [folder_name for folder_name in
                                                                          os.listdir(path_dataset) if "single" in
                                                                                                      folder_name][0])):
 
-                if root.split("\\")[-2] == "\\A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
+                if root.split("\\")[-2] == "A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
                     for file in files:
                         if root.split("\\")[-2] == "A":
+                            # if file in data_dict
                             pass
                         elif root.split("\\")[-2] == "B":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
@@ -171,10 +191,10 @@ if __name__ == '__main__':
 
 
         # Example usage:
-        path_jsons = r'G:\Coding\VLM_subtitling\dataset_labeled'
-        path_dataset = 'G:\Coding\VLM_subtitling\dataset_processed'
+        path_jsons = r'D:\MasterThesis\VLM_subtitling\dataset_labeled'
+        path_dataset = r'D:\MasterThesis\VLM_subtitling\dataset_processed'
         output_path = "\\".join(args.video_path.split("\\")[:-1]) + r"\dataset_final"
-        filter_dataset(path_jsons, path_dataset, output_path)
+        filter_dataset(path_jsons, path_dataset, output_path, ignore_different=True)
 
         exit(-1)
         path_coco_annotations = args.annotations
