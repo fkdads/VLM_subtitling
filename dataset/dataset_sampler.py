@@ -164,6 +164,7 @@ if __name__ == '__main__':
                 if root.split("\\")[-2] == "A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
                     for file in files:
                         if root.split("\\")[-2] == "A":
+                            copy_dict[os.path.join(root, file)] =
                             # if file in data_dict
                             pass
                         elif root.split("\\")[-2] == "B":
