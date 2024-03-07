@@ -47,9 +47,61 @@ if __name__ == '__main__':
                                                 frames_per_step=args.frames_per_step)
         subtitle_placement.create_input_data()
     elif args.task == "dataset_generation_2":
+        def generate_dall_e_mask(size: int = 30, image_height: int = 1024, image_width: int = 1024):
+            from PIL import Image, ImageDraw
+            # Create a new image with the desired size and white background
+            image_size = (image_width, image_height)
+            mask_image = Image.new("RGBA", image_size, color=(255, 255, 255, 255))
 
+            # Create a mask with the same size
+            mask = Image.new("L", image_size, 0)
+
+            # Draw a shape on the mask to define the area you want to make transparent
+            draw = ImageDraw.Draw(mask)
+            draw.rectangle([(round((image_width / 2) - (size / 2)),
+                             round(image_height * 0.9 - (size / 2))),
+                            (round((image_width / 2) + (size / 2)),
+                             round(image_height * 0.9 + (size / 2)))], fill=255)  # Adjust coordinates as needed
+
+            # Apply the mask to the image
+            mask_image.putalpha(mask)
+
+            return mask_image
         def filter_dataset(path_jsons, path_dataset, output_path, rebalance: list = [0.75, 0.15, 0.1],
                            ignore_different: bool = False):
+
+            from PIL import Image, ImageDraw
+            def generate_dall_e_mask(size: int = 30, image_height: int = 1024, image_width: int = 1024):
+                # Create a new image with the desired size and white background
+                image_size = (image_width, image_height)
+                mask_image = Image.new("RGBA", image_size, color=(255, 255, 255, 255))
+
+                # Create a mask with the same size
+                mask = Image.new("L", image_size, 0)
+
+                # Draw a shape on the mask to define the area you want to make transparent
+                draw = ImageDraw.Draw(mask)
+                draw.rectangle([(round((image_width / 2) - (size / 2)),
+                                 round(image_height * 0.9 - (size / 2))),
+                                (round((image_width / 2) + (size / 2)),
+                                 round(image_height * 0.9 + (size / 2)))], fill=255)  # Adjust coordinates as needed
+
+                # Apply the mask to the image
+                mask_image.putalpha(mask)
+
+                return mask_image
+            def get_image_dimensions(image_path):
+                from PIL import Image
+                try:
+                    with Image.open(image_path) as img:
+                        width, height = img.size
+                        return width, height
+                except FileNotFoundError:
+                    print("File not found.")
+                except Exception as e:
+                    print("An error occurred:", e)
+
+
             import os
             import json, copy
             assert len(rebalance) == 3, "The list should have exactly three values."
@@ -157,38 +209,74 @@ if __name__ == '__main__':
             )
 
             copy_dict = {}
+            image_height = -100
+            image_width = -100
             for root, dirs, files in os.walk(os.path.join(path_dataset, [folder_name for folder_name in
                                                                          os.listdir(path_dataset) if "single" in
                                                                                                      folder_name][0])):
 
                 if root.split("\\")[-2] == "A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
                     for file in files:
-                        if root.split("\\")[-2] == "A":
-                            copy_dict[os.path.join(root, file)] =
-                            # if file in data_dict
-                            pass
-                        elif root.split("\\")[-2] == "B":
+                        if ".png" in file or ".jpg" in file or ".jpeg" in file and image_width == -100 or image_height == -100:
+                            image_width, image_height = get_image_dimensions(os.path.join(root, file))
+
+                        if root.split("\\")[-2].upper() == "A":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
                                                                            os.listdir(path_dataset) if "single" in
                                                                                                        folder_name][0]]:
-                                pass
-                        else:
-                            pass
+                                copy_dict[os.path.join(root, file)] = [r"\subtitle_placement\single_default\Pix2Pix\A" + file,
+                                                                       r"\subtitle_placement\single_default\SAN\A" + file,
+                                                                       [(1024, 1024), r"\subtitle_placement\single_default\DALL-E\A" + file]]
 
-                        if dirs in data_dict:
-                            # Create folder in output_path if it doesn't exist
-                            output_folder = os.path.join(output_path, folder_name)
-                            if not os.path.exists(output_folder):
-                                os.makedirs(output_folder)
+                        if root.split("\\")[-2].upper() == "_A":
+                            if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
+                                                                           os.listdir(path_dataset) if "single" in
+                                                                                                       folder_name][0]]:
+                                copy_dict[os.path.join(root, file)] = [r"\subtitle_placement\single_empty\Pix2Pix\A" + file,
+                                                                       r"\subtitle_placement\single_empty\SAN\A" + file,
+                                                                       [(1024, 1024), r"\subtitle_placement\single_empty\DALL-E\A" + file]]
 
-                            # Iterate over files in the subfolder
-                            for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
-                                # Perform filtering based on data in data_dict
-                                filtered_data = [data for data in data_dict[folder_name] if data[
-                                    'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data
-                                # Write filtered data to output_path
-                                with open(os.path.join(output_folder, file_name), 'w') as output_file:
-                                    json.dump(filtered_data, output_file)
+                        elif root.split("\\")[-2].upper() == "B":
+                            if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
+                                                                           os.listdir(path_dataset) if "single" in
+                                                                                                       folder_name][0]]:
+                                copy_dict[os.path.join(root, file)] = ["\subtitle_placement\single_default\Pix2Pix\B" + file,
+                                                                       "\subtitle_placement\single_empty\Pix2Pix\B" + file]
+
+                        elif root.split("\\")[-2].upper() == "PIXELMAPS":
+                            if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
+                                                                           os.listdir(path_dataset) if "single" in
+                                                                                                       folder_name][0]]:
+                                copy_dict[os.path.join(root, file)] = ["\subtitle_placement\single_default\SAN\pixelmaps" + file,
+                                                                       "\subtitle_placement\single_empty\SAN\pixelmaps" + file]
+
+                        elif root.split("\\")[-2].upper() == "JSONS":
+                            if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
+                                                                           os.listdir(path_dataset) if "single" in
+                                                                                                       folder_name][0]]:
+                                copy_dict[os.path.join(root, file)] = ["\subtitle_placement\single_default\SAN\pixelmaps" + file,
+                                                                       "\subtitle_placement\single_empty\SAN\pixelmaps" + file]
+
+
+                    generated_image = generate_dall_e_mask(image_height=image_height, image_width=image_width)
+                    copy_dict[generated_image] = [r"\subtitle_placement\single_empty\DALL-E\mask.png"]
+                    generated_image = generate_dall_e_mask(size=0, image_height=image_height, image_width=image_width)
+                    copy_dict[generated_image] = [r"\subtitle_placement\single_default\DALL-E\mask.png"]
+                        # if dirs in data_dict:
+                        #     # Create folder in output_path if it doesn't exist
+                        #     output_folder = os.path.join(output_path, folder_name)
+                        #     if not os.path.exists(output_folder):
+                        #         os.makedirs(output_folder)
+                        #
+                        #     # Iterate over files in the subfolder
+                        #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
+                        #         # Perform filtering based on data in data_dict
+                        #         filtered_data = [data for data in data_dict[folder_name] if data[
+                        #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data
+                        #         # Write filtered data to output_path
+                        #         with open(os.path.join(output_folder, file_name), 'w') as output_file:
+                        #             json.dump(filtered_data, output_file)
+
 
 
         # Example usage:
