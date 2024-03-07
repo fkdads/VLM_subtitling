@@ -211,6 +211,7 @@ if __name__ == '__main__':
             copy_dict = {}
             image_height = -100
             image_width = -100
+            folder_name = None
             for root, dirs, files in os.walk(os.path.join(path_dataset, [folder_name for folder_name in
                                                                          os.listdir(path_dataset) if "single" in
                                                                                                      folder_name][0])):
@@ -222,46 +223,51 @@ if __name__ == '__main__':
 
                         if root.split("\\")[-2].upper() == "A":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
-                                                                           os.listdir(path_dataset) if "single" in
-                                                                                                       folder_name][0]]:
-                                copy_dict[os.path.join(root, file)] = [r"\subtitle_placement\single_default\Pix2Pix\A" + file,
-                                                                       r"\subtitle_placement\single_default\SAN\A" + file,
-                                                                       [(1024, 1024), r"\subtitle_placement\single_default\DALL-E\A" + file]]
+                                                                           os.listdir(path_dataset) if folder_name.endswith("single")][0]][os.path.basename(root)]:
+                                copy_dict[os.path.join(root, file)] = ["\\subtitle_placement\\single_default\\Pix2Pix\\A\\" + os.path.basename(root) + "\\" + file,
+                                                                       "\\subtitle_placement\\single_default\\SAN\\A\\" + os.path.basename(root) + "\\" + file,
+                                                                       [(1024, 1024), "\\subtitle_placement\\single_default\\DALL-E\\" + os.path.basename(root) + "\\" + file]]
 
                         if root.split("\\")[-2].upper() == "_A":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
                                                                            os.listdir(path_dataset) if "single" in
-                                                                                                       folder_name][0]]:
-                                copy_dict[os.path.join(root, file)] = [r"\subtitle_placement\single_empty\Pix2Pix\A" + file,
-                                                                       r"\subtitle_placement\single_empty\SAN\A" + file,
-                                                                       [(1024, 1024), r"\subtitle_placement\single_empty\DALL-E\A" + file]]
+                                                                                                       folder_name][0]][os.path.basename(root)]:
+                                copy_dict[os.path.join(root, file)] = ["\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + os.path.basename(root) + "\\" + file,
+                                                                       "\\subtitle_placement\\single_empty\\SAN\\A\\" + os.path.basename(root) + "\\" + file,
+                                                                       [(1024, 1024), "\\subtitle_placement\\single_empty\\DALL-E\\A\\" + os.path.basename(root) + "\\" + file]]
 
                         elif root.split("\\")[-2].upper() == "B":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
                                                                            os.listdir(path_dataset) if "single" in
-                                                                                                       folder_name][0]]:
-                                copy_dict[os.path.join(root, file)] = ["\subtitle_placement\single_default\Pix2Pix\B" + file,
-                                                                       "\subtitle_placement\single_empty\Pix2Pix\B" + file]
+                                                                                                       folder_name][0]][os.path.basename(root)]:
+                                copy_dict[os.path.join(root, file)] = ["\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + os.path.basename(root) + "\\" + file,
+                                                                       "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + os.path.basename(root) + "\\" + file]
 
                         elif root.split("\\")[-2].upper() == "PIXELMAPS":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
                                                                            os.listdir(path_dataset) if "single" in
-                                                                                                       folder_name][0]]:
-                                copy_dict[os.path.join(root, file)] = ["\subtitle_placement\single_default\SAN\pixelmaps" + file,
-                                                                       "\subtitle_placement\single_empty\SAN\pixelmaps" + file]
+                                                                                                       folder_name][0]][os.path.basename(root)]:
+                                copy_dict[os.path.join(root, file)] = ["\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + os.path.basename(root) + "\\" + file,
+                                                                       "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + os.path.basename(root) + "\\" + file]
 
                         elif root.split("\\")[-2].upper() == "JSONS":
                             if "-".join(file.split("-")[:1]) in data_dict[[folder_name for folder_name in
                                                                            os.listdir(path_dataset) if "single" in
-                                                                                                       folder_name][0]]:
-                                copy_dict[os.path.join(root, file)] = ["\subtitle_placement\single_default\SAN\pixelmaps" + file,
-                                                                       "\subtitle_placement\single_empty\SAN\pixelmaps" + file]
+                                                                                                       folder_name][0]][os.path.basename(root)]:
+                                copy_dict[os.path.join(root, file)] = ["\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + os.path.basename(root) + "\\" + file,
+                                                                       "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + os.path.basename(root) + "\\" + file]
 
 
                     generated_image = generate_dall_e_mask(image_height=image_height, image_width=image_width)
-                    copy_dict[generated_image] = [r"\subtitle_placement\single_empty\DALL-E\mask.png"]
+                    if "to_create" in copy_dict:
+                        copy_dict["to_create"].append([generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"])
+                    else:
+                        copy_dict["to_create"] = [[generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"]]
                     generated_image = generate_dall_e_mask(size=0, image_height=image_height, image_width=image_width)
-                    copy_dict[generated_image] = [r"\subtitle_placement\single_default\DALL-E\mask.png"]
+                    if "to_create" in copy_dict:
+                        copy_dict["to_create"].append([generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"])
+                    else:
+                        copy_dict["to_create"] = [[generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"]]
                         # if dirs in data_dict:
                         #     # Create folder in output_path if it doesn't exist
                         #     output_folder = os.path.join(output_path, folder_name)
@@ -277,8 +283,8 @@ if __name__ == '__main__':
                         #         with open(os.path.join(output_folder, file_name), 'w') as output_file:
                         #             json.dump(filtered_data, output_file)
 
-
-
+            print("hello stop")
+            exit(-1)
         # Example usage:
         path_jsons = r'D:\MasterThesis\VLM_subtitling\dataset_labeled'
         path_dataset = r'D:\MasterThesis\VLM_subtitling\dataset_processed'
