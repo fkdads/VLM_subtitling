@@ -46,7 +46,14 @@ if __name__ == '__main__':
         subtitle_placement.create_input_data()
     elif args.task == "dataset_generation_2":
         from dataset.helper.dataset_sampler_helper import final_sampling
-        final_sampling.run(args)
+
+        path_jsons = r'G:\Coding\VLM_subtitling\dataset_labeled'
+        path_dataset = r'G:\Coding\VLM_subtitling\dataset_processed'
+        output_path = "\\".join(args.video_path.split("\\")[:-1]) + r"\dataset_final"
+
+        sampler = final_sampling(video_path=args.video_path, rebalance=[0.75, 0.15, 0.1], path_jsons=path_jsons,
+                                 path_dataset=path_dataset, ignore_different=args.ignore_different)
+        sampler.run()
 
         exit(-1)
         path_coco_annotations = args.annotations

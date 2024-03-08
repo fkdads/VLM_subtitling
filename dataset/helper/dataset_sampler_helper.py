@@ -11,7 +11,7 @@ from datetime import datetime
 import random
 from segment_anything import sam_model_registry, SamPredictor
 
-from PIL import Image
+from PIL import Image, ImageDraw
 from pycocotools.mask import decode, encode, frPyObjects, area
 from tqdm import tqdm
 
@@ -97,6 +97,8 @@ def __init_arg_parse() -> argparse.Namespace:
     parser.add_argument("--fsp", dest="fixed_start_point", type=int, action="store", default=100)
 
     parser.add_argument("--ean", dest="extract_annotations", action="store_true", default=True)
+
+    parser.add_argument("--igd", dest="ignore_different", action="store_true", default=False)
 
     parser.add_argument("--overlay_frames", dest="overlay_frames", type=int, default=1)
 
@@ -247,31 +249,26 @@ def format_frames(frame, output_size):
 
 
 class final_sampling:
-    @staticmethod
-    def run(args):
-        # Example usage:
-        path_jsons = r'G:\Coding\VLM_subtitling\dataset_labeled'
-        path_dataset = r'G:\Coding\VLM_subtitling\dataset_processed'
-        output_path = "\\".join(args.video_path.split("\\")[:-1]) + r"\dataset_final"
-        final_sampling.filter_dataset(path_jsons, path_dataset, output_path, ignore_different=True)
 
-    @staticmethod
-    def process_files(root):
-        root, dirs, files = root[0], root[1], root[2]
+    def run(self):
+        self.filter_dataset(path_dataset=self.path_dataset, rebalance=self.rebalance)
+        raise NotImplementedError("Please extend for copying files in final directories")
+
+    def process_files(self, iteration_list):
+        root, dirs, files = iteration_list
 
         copy_dict = {}
         image_height = -100
         image_width = -100
-        files = []
 
         if root.split("\\")[-2] == "A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
             for file in files:
                 if ".png" in file or ".jpg" in file or ".jpeg" in file and image_width == -100 or image_height == -100:
-                    image_width, image_height = get_image_dimensions(os.path.join(root, file))
+                    image_width, image_height = final_sampling.get_image_dimensions(os.path.join(root, file))
 
                 if root.split("\\")[-2].upper() == "A":
-                    if "-".join(file.split("-")[:1]) in data_dict[
-                        [folder_name for folder_name in os.listdir(path_dataset) if
+                    if "-".join(file.split("-")[:1]) in self.data_dict[
+                        [folder_name for folder_name in os.listdir(self.path_dataset) if
                          folder_name.endswith("single")][0]][os.path.basename(root)]:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\Pix2Pix\\A\\" + os.path.basename(
@@ -282,8 +279,8 @@ class final_sampling:
                                                           root) + "\\" + file]]
 
                 if root.split("\\")[-2].upper() == "_A":
-                    if "-".join(file.split("-")[:1]) in data_dict[
-                        [folder_name for folder_name in os.listdir(path_dataset) if "single" in folder_name][
+                    if "-".join(file.split("-")[:1]) in self.data_dict[
+                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
                             0]][os.path.basename(root)]:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + os.path.basename(
@@ -294,8 +291,8 @@ class final_sampling:
                                                           root) + "\\" + file]]
 
                 elif root.split("\\")[-2].upper() == "B":
-                    if "-".join(file.split("-")[:1]) in data_dict[
-                        [folder_name for folder_name in os.listdir(path_dataset) if "single" in folder_name][
+                    if "-".join(file.split("-")[:1]) in self.data_dict[
+                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
                             0]][os.path.basename(root)]:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + os.path.basename(
@@ -304,8 +301,8 @@ class final_sampling:
                                 root) + "\\" + file]
 
                 elif root.split("\\")[-2].upper() == "PIXELMAPS":
-                    if "-".join(file.split("-")[:1]) in data_dict[
-                        [folder_name for folder_name in os.listdir(path_dataset) if "single" in folder_name][
+                    if "-".join(file.split("-")[:1]) in self.data_dict[
+                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
                             0]][os.path.basename(root)]:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + os.path.basename(
@@ -314,8 +311,8 @@ class final_sampling:
                                 root) + "\\" + file]
 
                 elif root.split("\\")[-2].upper() == "JSONS":
-                    if "-".join(file.split("-")[:1]) in data_dict[
-                        [folder_name for folder_name in os.listdir(path_dataset) if "single" in folder_name][
+                    if "-".join(file.split("-")[:1]) in self.data_dict[
+                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
                             0]][os.path.basename(root)]:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + os.path.basename(
@@ -323,20 +320,21 @@ class final_sampling:
                             "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + os.path.basename(
                                 root) + "\\" + file]
 
-            generated_image = generate_dall_e_mask(image_height=image_height, image_width=image_width)
-            if "to_create" in copy_dict:
-                copy_dict["to_create"].append(
-                    [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"])
-            else:
-                copy_dict["to_create"] = [
-                    [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"]]
-            generated_image = generate_dall_e_mask(size=0, image_height=image_height, image_width=image_width)
-            if "to_create" in copy_dict:
-                copy_dict["to_create"].append(
-                    [generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"])
-            else:
-                copy_dict["to_create"] = [[generated_image,
-                                           "\\subtitle_placement\\single_default\\DALL-E\\mask.png"]]  # if dirs in data_dict:  #     # Create folder in output_path if it doesn't exist  #     output_folder = os.path.join(output_path, folder_name)  #     if not os.path.exists(output_folder):  #         os.makedirs(output_folder)  #  #     # Iterate over files in the subfolder  #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):  #         # Perform filtering based on data in data_dict  #         filtered_data = [data for data in data_dict[folder_name] if data[  #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data  #         # Write filtered data to output_path  #         with open(os.path.join(output_folder, file_name), 'w') as output_file:  #             json.dump(filtered_data, output_file)
+            if image_width > 0 and image_height > 0:
+                generated_image = final_sampling.generate_dall_e_mask(image_height=image_height, image_width=image_width)
+                if "to_create" in copy_dict:
+                    copy_dict["to_create"].append(
+                        [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"])
+                else:
+                    copy_dict["to_create"] = [
+                        [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"]]
+                generated_image = final_sampling.generate_dall_e_mask(size=0, image_height=image_height, image_width=image_width)
+                if "to_create" in copy_dict:
+                    copy_dict["to_create"].append(
+                        [generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"])
+                else:
+                    copy_dict["to_create"] = [[generated_image,
+                                               "\\subtitle_placement\\single_default\\DALL-E\\mask.png"]]  # if dirs in data_dict:  #     # Create folder in output_path if it doesn't exist  #     output_folder = os.path.join(output_path, folder_name)  #     if not os.path.exists(output_folder):  #         os.makedirs(output_folder)  #  #     # Iterate over files in the subfolder  #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):  #         # Perform filtering based on data in data_dict  #         filtered_data = [data for data in data_dict[folder_name] if data[  #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data  #         # Write filtered data to output_path  #         with open(os.path.join(output_folder, file_name), 'w') as output_file:  #             json.dump(filtered_data, output_file)
 
         return copy_dict
 
@@ -396,9 +394,7 @@ class final_sampling:
             print("An error occurred:", e)
 
 
-    @staticmethod
-    def read_in_json_files(path_jsons: str):
-        data_dict = {}
+    def read_in_json_files(self, path_jsons: str):
         for root, dirs, files in os.walk(path_jsons):
             base_folder = root.replace(path_jsons, "").replace(os.path.basename(root), "").strip("\\")
             for file in files:
@@ -407,18 +403,31 @@ class final_sampling:
                     with open(os.path.join(root, file), 'r') as json_file:
                         data = json.load(json_file)
                         data = ["-".join(el["file_name"].split("-")[1:]) for el in data["images"]]
-                        if base_folder not in data_dict:
-                            data_dict[base_folder] = {}
+                        if base_folder not in self.data_dict:
+                            self.data_dict[base_folder] = {}
 
-                        if folder_name not in data_dict[base_folder]:
-                            data_dict[base_folder][folder_name] = []
-                        data_dict[base_folder][folder_name].extend(data)
-
-        return data_dict
+                        if folder_name not in self.data_dict[base_folder]:
+                            self.data_dict[base_folder][folder_name] = []
+                        self.data_dict[base_folder][folder_name].extend(data)
 
 
-    @staticmethod
-    def rebalance_annotated_datasaet(data_dict):
+    def __init__(self, rebalance, video_path, path_dataset: str =r'G:\Coding\VLM_subtitling\dataset_processed', path_jsons: str = r'G:\Coding\VLM_subtitling\dataset_labeled', ignore_different: bool = True):
+
+        self.rebalance = rebalance
+        self.data_dict = {}
+        self.read_in_json_files(path_jsons)
+        self.path_dataset = path_dataset
+        self.path_jsons = path_jsons
+        self.final_result_dict = {}
+        self.video_path = video_path
+        # self.args = args
+        self.output_path = "\\".join(video_path.split("\\")[:-1]) + r"\dataset_final"
+        self.ignore_different = ignore_different
+
+        # sampler = final_sampling(rebalance)
+        self.rebalance_annotated_datasaet(self.data_dict, ignore_different=self.ignore_different)
+
+    def rebalance_annotated_datasaet(self, data_dict, ignore_different):
         # data_dict_temp = copy.deepcopy(data_dict)
         test = 0
         train = 0
@@ -458,18 +467,18 @@ class final_sampling:
 
             sum_instances = test + train + val
             if train > 0:
-                train_rebalance = int(sum_instances * rebalance[0])
+                train_rebalance = int(sum_instances * self.rebalance[0])
             else:
                 train_rebalance = 0
             if val > 0:
-                val_rebalance = int(sum_instances * rebalance[1])
+                val_rebalance = int(sum_instances * self.rebalance[1])
             else:
                 val_rebalance = 0
 
             if sum_instances == test:
                 test_rebalance = test
             else:
-                test_rebalance = int(sum_instances * rebalance[2])
+                test_rebalance = int(sum_instances * self.rebalance[2])
 
             assert train_rebalance + val_rebalance + test_rebalance <= sum_instances, (
                 "Logic issue, please fix "
@@ -487,9 +496,7 @@ class final_sampling:
             data_dict[pkey]["train"] = train_images
 
 
-    @staticmethod
-    def filter_dataset(path_jsons, path_dataset, output_path, rebalance: list = [0.75, 0.15, 0.1],
-                       ignore_different: bool = False):
+    def filter_dataset(self, path_dataset, rebalance: list = [0.75, 0.15, 0.1]):
         from PIL import Image, ImageDraw
 
         import os
@@ -499,8 +506,6 @@ class final_sampling:
         assert sum(rebalance) == 1, "The sum of the values in the list should equal 1."
 
         # Create a dictionary to store data based on folder names
-        data_dict = final_sampling.read_in_json_files(path_jsons)
-        final_sampling.rebalance_annotated_datasaet(data_dict)
 
         # Iterate over subfolders in path_dataset
         assert any("single" in folder_name for folder_name in os.listdir(path_dataset)) and any(
@@ -513,14 +518,17 @@ class final_sampling:
         root_dirs = os.walk(os.path.join(path_dataset, [folder_name for folder_name in os.listdir(path_dataset) if
                                                         "single" in folder_name][0]))
 
+
+        # for root, dirs, files in root_dirs:
+        #    print(self.process_files([root, dirs, files]))
+
         with Pool() as pool:
-            results = pool.map(process_files, root_dirs)
+            results = pool.map(self.process_files, root_dirs)
 
         # Now you can collect and aggregate the results
-        final_result_dict = {}
-        for result in results:
-            final_result_dict.update(result)
 
+        for result in results:
+            self.final_result_dict.update(result)
 
 
 
