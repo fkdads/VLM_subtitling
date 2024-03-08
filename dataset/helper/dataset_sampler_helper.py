@@ -104,6 +104,8 @@ def __init_arg_parse() -> argparse.Namespace:
 
     parser.add_argument("--overlay_frames_skip", dest="overlay_frames_skip", type=int, default=1)
 
+    parser.add_argument("--plabel", dest="path_labeled", type=str, default="")
+
     parser.add_argument("--anno", dest="annotations",
                         default=[
                             r"D:\Master_Thesis_data\Active_Speaker\dataset_processed\train"
@@ -411,7 +413,7 @@ class final_sampling:
                         self.data_dict[base_folder][folder_name].extend(data)
 
 
-    def __init__(self, rebalance, video_path, path_dataset: str =r'G:\Coding\VLM_subtitling\dataset_processed', path_jsons: str = r'G:\Coding\VLM_subtitling\dataset_labeled', ignore_different: bool = True):
+    def __init__(self, rebalance, path_dataset: str =r'G:\Coding\VLM_subtitling\dataset_processed', path_jsons: str = r'G:\Coding\VLM_subtitling\dataset_labeled', ignore_different: bool = True):
 
         self.rebalance = rebalance
         self.data_dict = {}
@@ -419,9 +421,9 @@ class final_sampling:
         self.path_dataset = path_dataset
         self.path_jsons = path_jsons
         self.final_result_dict = {}
-        self.video_path = video_path
+        # self.video_path = video_path
         # self.args = args
-        self.output_path = "\\".join(video_path.split("\\")[:-1]) + r"\dataset_final"
+        self.output_path = "\\".join(path_dataset.split("\\")[:-1]) + r"\dataset_final"
         self.ignore_different = ignore_different
 
         # sampler = final_sampling(rebalance)
