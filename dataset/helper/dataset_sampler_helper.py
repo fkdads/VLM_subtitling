@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import shutil
 import warnings
 import statistics
 
@@ -287,6 +288,7 @@ class final_sampling:
         paths = []
 
         #target_dir = os.path.dirname(target_path)
+        #target_dir = os.path.dirname(target_path)
         #if not os.path.exists(target_dir):
         #    os.makedirs(target_dir)
 
@@ -294,8 +296,6 @@ class final_sampling:
             if isinstance(pvalue, list):
                 if len(pvalue) > 0:
                     for element in pvalue:
-                        print(pkey)
-                        print(element)
                         # Handle empty list case
                         # raise ValueError("Empty list passed")
                         if isinstance(element, list):
@@ -313,17 +313,23 @@ class final_sampling:
                             if isinstance(element[0], tuple) and len(element) == 2:
                                 self.prepare_image(pkey, self.output_path + element[1], element[0])
                             elif isinstance(element[0], PIL.Image.Image) and len(element) == 2:
-                                print("Complex item - to create detected")
+                                element[0].save(self.output_path + element[1], 'PNG')
 
                             else:
                                 print(f"Not supported complex item detected {type(element)}")
 
                         else:
-                            print("no complex item detected")
+                            if not os.path.dirname(self.output_path + element) in paths:
+                                paths.append(os.path.dirname(self.output_path + element))
+                                target_dir = os.path.dirname(self.output_path + element)
+                                if not os.path.exists(target_dir):
+                                   os.makedirs(target_dir)
+                            shutil.copy(pkey, self.output_path + element)
             else:
                 raise ValueError("final copy dict contains irregular values")
 
-        raise NotImplementedError("Please extend for copying files in final directories")
+        return True
+        #raise NotImplementedError("Please extend for copying files in final directories")
 
     def process_files(self, iteration_list):
         root, dirs, files = iteration_list
@@ -343,25 +349,25 @@ class final_sampling:
                 else:
                     complete_dict[element] = pkey
 
-        if root.split("\\")[-2] == "A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
+        if root.split("\\")[-2].upper() in ["A", "B", "_A", "PIXELMAPS", "JSONS"]:
             for file in files:
-                if ".png" in file or ".jpg" in file or ".jpeg" in file and image_width == -100 or image_height == -100:
-                    image_width, image_height = final_sampling.get_image_dimensions(os.path.join(root, file))
+                if ".png" in file or ".jpg" in file or ".jpeg" in file and (image_width == -100 or image_height == -100):
+                    image_width, image_height = self.get_image_dimensions(os.path.join(root, file))
 
                 if root.split("\\")[-2].upper() == "A":
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\Pix2Pix\\A\\" +
                             complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_default\\SAN\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
+                            "\\subtitle_placement\\single_default\\SAN\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
                             "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
 
                 if root.split("\\")[-2].upper() == "_A":
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
-                                                      "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
+                            "\\subtitle_placement\\single_empty\\SAN\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
+                                "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
 
                 elif root.split("\\")[-2].upper() == "B":
                     if "-".join(file.split("-")[:1]) in complete_dict:
@@ -370,19 +376,32 @@ class final_sampling:
                             "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
 
                 elif root.split("\\")[-2].upper() == "PIXELMAPS":
-                    if "-".join(file.split("-")[:1]) in complete_dict:
+                    file_temp = "-".join(file.split("-")[:1])
+                    if not file_temp in complete_dict:
+                        file_temp = file_temp.replace(".png", "_0.jpg")
+                        if not file_temp in complete_dict:
+                            file_temp = file_temp.replace(".jpg", ".png")
+                    if file_temp in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
+                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict[file_temp] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict[file_temp] + "\\" + file]
+                    else:
+                        print(f"file_temp {file_temp} not found")
 
                 elif root.split("\\")[-2].upper() == "JSONS":
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
+                            "\\subtitle_placement\\single_default\\GLIP\\annotations\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\GLIP\\annotations\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
 
-            if image_width > 0 and image_height > 0:
-                generated_image = final_sampling.generate_dall_e_mask(image_height=image_height, image_width=image_width)
+                else:
+                    print(f"Path not found {root}")
+            if image_width > 0 and image_height > 0 and not self.single_mask_created:
+                print(next(iter(complete_dict.keys())))
+                print("printed \n")
+                image_path = root + "\\" + next(iter(complete_dict.keys()))
+                generated_image = self.generate_dall_e_mask(image_path=image_path, image_height=image_height,
+                                                                      image_width=image_width)
                 if "to_create" in copy_dict:
                     copy_dict["to_create"].append(
                         [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"])
@@ -396,15 +415,24 @@ class final_sampling:
                 else:
                     copy_dict["to_create"] = [[generated_image,
                                                "\\subtitle_placement\\single_default\\DALL-E\\mask.png"]]  # if dirs in data_dict:  #     # Create folder in output_path if it doesn't exist  #     output_folder = os.path.join(output_path, folder_name)  #     if not os.path.exists(output_folder):  #         os.makedirs(output_folder)  #  #     # Iterate over files in the subfolder  #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):  #         # Perform filtering based on data in data_dict  #         filtered_data = [data for data in data_dict[folder_name] if data[  #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data  #         # Write filtered data to output_path  #         with open(os.path.join(output_folder, file_name), 'w') as output_file:  #             json.dump(filtered_data, output_file)
-
+                self.single_mask_created = True
+        else:
+            print(f"root split not found {root.split("\\")[-2].upper()}")
         return copy_dict
 
     @staticmethod
-    def generate_dall_e_mask(size: int = 30, image_height: int = 1024, image_width: int = 1024):
+    def generate_dall_e_mask(image_path: str | None = None, size: int = 30, image_height: int = 1024,
+                             image_width: int = 1024) -> Image:
         from PIL import Image, ImageDraw
         # Create a new image with the desired size and white background
-        image_size = (image_width, image_height)
-        mask_image = Image.new("RGBA", image_size, color=(255, 255, 255, 255))
+        if isinstance(size, str):
+            size = int(size)
+        if image_path is None:
+            image_size = (image_width, image_height)
+            mask_image = Image.new("RGBA", image_size, color=(255, 255, 255, 255))
+        else:
+            mask_image = Image.open(image_path)
+            image_size = mask_image.size
 
         # Create a mask with the same size
         mask = Image.new("L", image_size, 0)
@@ -419,28 +447,6 @@ class final_sampling:
         mask_image.putalpha(mask)
 
         return mask_image
-
-
-    @staticmethod
-    def generate_dall_e_mask(size: int = 30, image_height: int = 1024, image_width: int = 1024):
-        # Create a new image with the desired size and white background
-        image_size = (image_width, image_height)
-        mask_image = Image.new("RGBA", image_size, color=(255, 255, 255, 255))
-
-        # Create a mask with the same size
-        mask = Image.new("L", image_size, 0)
-
-        # Draw a shape on the mask to define the area you want to make transparent
-        draw = ImageDraw.Draw(mask)
-        draw.rectangle([(round((image_width / 2) - (size / 2)), round(image_height * 0.9 - (size / 2))),
-                        (round((image_width / 2) + (size / 2)), round(image_height * 0.9 + (size / 2)))],
-                       fill=255)  # Adjust coordinates as needed
-
-        # Apply the mask to the image
-        mask_image.putalpha(mask)
-
-        return mask_image
-
 
     @staticmethod
     def get_image_dimensions(image_path):
@@ -484,6 +490,7 @@ class final_sampling:
         # self.args = args
         self.output_path = "\\".join(path_dataset.split("\\")[:-1]) + r"\dataset_final"
         self.ignore_different = ignore_different
+        self.single_mask_created = False
 
         # sampler = final_sampling(rebalance)
         self.rebalance_annotated_datasaet(self.data_dict, ignore_different=self.ignore_different)
@@ -660,7 +667,7 @@ class SubtitlePlacement:
         self.annotation_categories = [
             {
                 "supercategory": "subtitle",
-                "id": 200,
+                "id": 1,
                 "name": "subtitle-position"
             }
         ]
