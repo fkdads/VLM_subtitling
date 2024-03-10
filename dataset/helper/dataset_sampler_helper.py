@@ -9,6 +9,9 @@ import statistics
 # from typing import List
 from datetime import datetime
 import random
+from typing import List, Union
+
+import PIL.Image
 from segment_anything import sam_model_registry, SamPredictor
 
 from PIL import Image, ImageDraw
@@ -251,9 +254,75 @@ def format_frames(frame, output_size):
 
 
 class final_sampling:
+    @staticmethod
+    def prepare_image(image_path: str, target_path: str, target_size: Union[int, tuple] = -1):
+        # Open the original image
+        # image_path = r"D:\Master_Thesis_data\Subtitle_Placement\_A\test\2250.jpg"
+        original_image = Image.open(image_path)
+
+        if original_image.format != 'PNG':
+            original_image = original_image.convert('RGBA')
+
+        # Choose the dimensions for the square image
+        if isinstance(target_size, tuple):
+            if target_size[0] != target_size[1]:
+                raise ValueError("Resizing should only be used for squared resizing.")
+            else:
+                target_size = target_size[0]
+
+        if isinstance(target_size, int):
+            if 0 > target_size:
+                target_size = min(original_image.size)
+
+
+        # Resize the image to a square
+        resized_image = original_image.resize((target_size, target_size))
+
+        resized_image.save(target_path, 'PNG')
+        return True #image_path.replace(".jpg", ".png").replace("\_A", "\_A-resized")
 
     def run(self):
         self.filter_dataset(path_dataset=self.path_dataset, rebalance=self.rebalance)
+
+        paths = []
+
+        #target_dir = os.path.dirname(target_path)
+        #if not os.path.exists(target_dir):
+        #    os.makedirs(target_dir)
+
+        for pkey, pvalue in self.final_result_dict.items():
+            if isinstance(pvalue, list):
+                if len(pvalue) > 0:
+                    for element in pvalue:
+                        print(pkey)
+                        print(element)
+                        # Handle empty list case
+                        # raise ValueError("Empty list passed")
+                        if isinstance(element, list):
+                            if len(element) != 2:
+                                raise NotImplementedError(
+                                    f"The passed type {type(element)} in final copy list is not supported."
+                                )
+
+                            if not os.path.dirname(self.output_path + element[1]) in paths:
+                                paths.append(os.path.dirname(self.output_path + element[1]))
+                                target_dir = os.path.dirname(self.output_path + element[1])
+                                if not os.path.exists(target_dir):
+                                   os.makedirs(target_dir)
+
+                            if isinstance(element[0], tuple) and len(element) == 2:
+                                self.prepare_image(pkey, self.output_path + element[1], element[0])
+                            elif isinstance(element[0], PIL.Image.Image) and len(element) == 2:
+                                print("Complex item - to create detected")
+
+                            else:
+                                print(f"Not supported complex item detected {type(element)}")
+
+                        else:
+                            print("no complex item detected")
+            else:
+                raise ValueError("final copy dict contains irregular values")
+
         raise NotImplementedError("Please extend for copying files in final directories")
 
     def process_files(self, iteration_list):
@@ -263,64 +332,54 @@ class final_sampling:
         image_height = -100
         image_width = -100
 
+        # ToDo: Move to __init__
+        complete_dict = {}
+        for pkey, pitem in self.data_dict[
+            [folder_name for folder_name in os.listdir(self.path_dataset) if
+             folder_name.endswith("single")][0]].items():
+            for element in pitem:
+                if isinstance(element, list):
+                    complete_dict[element[1]] = pkey
+                else:
+                    complete_dict[element] = pkey
+
         if root.split("\\")[-2] == "A" or root.split("\\")[-2] == "B" or root.split("\\")[-2] == "_A":
             for file in files:
                 if ".png" in file or ".jpg" in file or ".jpeg" in file and image_width == -100 or image_height == -100:
                     image_width, image_height = final_sampling.get_image_dimensions(os.path.join(root, file))
 
                 if root.split("\\")[-2].upper() == "A":
-                    if "-".join(file.split("-")[:1]) in self.data_dict[
-                        [folder_name for folder_name in os.listdir(self.path_dataset) if
-                         folder_name.endswith("single")][0]][os.path.basename(root)]:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\Pix2Pix\\A\\" + os.path.basename(
-                                root) + "\\" + file,
-                            "\\subtitle_placement\\single_default\\SAN\\A\\" + os.path.basename(
-                                root) + "\\" + file, [(1024, 1024),
-                                                      "\\subtitle_placement\\single_default\\DALL-E\\" + os.path.basename(
-                                                          root) + "\\" + file]]
+                            "\\subtitle_placement\\single_default\\Pix2Pix\\A\\" +
+                            complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_default\\SAN\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
+                            "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
 
                 if root.split("\\")[-2].upper() == "_A":
-                    if "-".join(file.split("-")[:1]) in self.data_dict[
-                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
-                            0]][os.path.basename(root)]:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + os.path.basename(
-                                root) + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\A\\" + os.path.basename(
-                                root) + "\\" + file, [(1024, 1024),
-                                                      "\\subtitle_placement\\single_empty\\DALL-E\\A\\" + os.path.basename(
-                                                          root) + "\\" + file]]
+                            "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\SAN\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
+                                                      "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
 
                 elif root.split("\\")[-2].upper() == "B":
-                    if "-".join(file.split("-")[:1]) in self.data_dict[
-                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
-                            0]][os.path.basename(root)]:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + os.path.basename(
-                                root) + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + os.path.basename(
-                                root) + "\\" + file]
+                            "\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
 
                 elif root.split("\\")[-2].upper() == "PIXELMAPS":
-                    if "-".join(file.split("-")[:1]) in self.data_dict[
-                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
-                            0]][os.path.basename(root)]:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + os.path.basename(
-                                root) + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + os.path.basename(
-                                root) + "\\" + file]
+                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
 
                 elif root.split("\\")[-2].upper() == "JSONS":
-                    if "-".join(file.split("-")[:1]) in self.data_dict[
-                        [folder_name for folder_name in os.listdir(self.path_dataset) if "single" in folder_name][
-                            0]][os.path.basename(root)]:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + os.path.basename(
-                                root) + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + os.path.basename(
-                                root) + "\\" + file]
+                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
 
             if image_width > 0 and image_height > 0:
                 generated_image = final_sampling.generate_dall_e_mask(image_height=image_height, image_width=image_width)
