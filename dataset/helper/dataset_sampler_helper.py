@@ -362,6 +362,27 @@ class final_sampling:
                             "\\subtitle_placement\\single_default\\SAN\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
                             "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
 
+                        if image_width > 0 and image_height > 0 and not self.single_mask_created:
+                            image_path = os.path.join(root, file)
+                            generated_image = self.generate_dall_e_mask(image_path=image_path,
+                                                                        image_height=image_height,
+                                                                        image_width=image_width)
+                            if "to_create" in copy_dict:
+                                copy_dict["to_create"].append(
+                                    [generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"])
+                            else:
+                                copy_dict["to_create"] = [
+                                    [generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"]]
+                            generated_image = final_sampling.generate_dall_e_mask(size=0, image_height=image_height,
+                                                                                  image_width=image_width)
+                            if "to_create" in copy_dict:
+                                copy_dict["to_create"].append(
+                                    [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"])
+                            else:
+                                copy_dict["to_create"] = [[generated_image,
+                                                           "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"]]  # if dirs in data_dict:  #     # Create folder in output_path if it doesn't exist  #     output_folder = os.path.join(output_path, folder_name)  #     if not os.path.exists(output_folder):  #         os.makedirs(output_folder)  #  #     # Iterate over files in the subfolder  #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):  #         # Perform filtering based on data in data_dict  #         filtered_data = [data for data in data_dict[folder_name] if data[  #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data  #         # Write filtered data to output_path  #         with open(os.path.join(output_folder, file_name), 'w') as output_file:  #             json.dump(filtered_data, output_file)
+                            self.single_mask_created = True
+
                 if root.split("\\")[-2].upper() == "_A":
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
@@ -389,33 +410,10 @@ class final_sampling:
                         print(f"file_temp {file_temp} not found")
 
                 elif root.split("\\")[-2].upper() == "JSONS":
-                    if "-".join(file.split("-")[:1]) in complete_dict:
-                        copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\GLIP\\annotations\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\GLIP\\annotations\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
+                    print(self.data_dict[root.split("\\")[-3]])
 
                 else:
                     print(f"Path not found {root}")
-            if image_width > 0 and image_height > 0 and not self.single_mask_created:
-                print(next(iter(complete_dict.keys())))
-                print("printed \n")
-                image_path = root + "\\" + next(iter(complete_dict.keys()))
-                generated_image = self.generate_dall_e_mask(image_path=image_path, image_height=image_height,
-                                                                      image_width=image_width)
-                if "to_create" in copy_dict:
-                    copy_dict["to_create"].append(
-                        [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"])
-                else:
-                    copy_dict["to_create"] = [
-                        [generated_image, "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"]]
-                generated_image = final_sampling.generate_dall_e_mask(size=0, image_height=image_height, image_width=image_width)
-                if "to_create" in copy_dict:
-                    copy_dict["to_create"].append(
-                        [generated_image, "\\subtitle_placement\\single_default\\DALL-E\\mask.png"])
-                else:
-                    copy_dict["to_create"] = [[generated_image,
-                                               "\\subtitle_placement\\single_default\\DALL-E\\mask.png"]]  # if dirs in data_dict:  #     # Create folder in output_path if it doesn't exist  #     output_folder = os.path.join(output_path, folder_name)  #     if not os.path.exists(output_folder):  #         os.makedirs(output_folder)  #  #     # Iterate over files in the subfolder  #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):  #         # Perform filtering based on data in data_dict  #         filtered_data = [data for data in data_dict[folder_name] if data[  #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data  #         # Write filtered data to output_path  #         with open(os.path.join(output_folder, file_name), 'w') as output_file:  #             json.dump(filtered_data, output_file)
-                self.single_mask_created = True
         else:
             print(f"root split not found {root.split("\\")[-2].upper()}")
         return copy_dict
@@ -439,7 +437,8 @@ class final_sampling:
 
         # Draw a shape on the mask to define the area you want to make transparent
         draw = ImageDraw.Draw(mask)
-        draw.rectangle([(round((image_width / 2) - (size / 2)), round(image_height * 0.9 - (size / 2))),
+        if size > 0:
+            draw.rectangle([(round((image_width / 2) - (size / 2)), round(image_height * 0.9 - (size / 2))),
                         (round((image_width / 2) + (size / 2)), round(image_height * 0.9 + (size / 2)))],
                        fill=255)  # Adjust coordinates as needed
 
