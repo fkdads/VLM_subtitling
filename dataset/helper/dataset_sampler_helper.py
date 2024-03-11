@@ -314,9 +314,11 @@ class final_sampling:
                                 self.prepare_image(pkey, self.output_path + element[1], element[0])
                             elif isinstance(element[0], PIL.Image.Image) and len(element) == 2:
                                 element[0].save(self.output_path + element[1], 'PNG')
-
+                            elif isinstance(element[0], dict) and len(element) == 2:
+                                with open(self.output_path + element[1], 'w') as file:
+                                    json.dump(element[1], file)
                             else:
-                                print(f"Not supported complex item detected {type(element)}")
+                                print(f"Not supported complex item detected {type(element)}: {element}")
 
                         else:
                             if not os.path.dirname(self.output_path + element) in paths:
@@ -360,8 +362,15 @@ class final_sampling:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\Pix2Pix\\A\\" +
                             complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_default\\SAN\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
-                            "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
+                            "\\subtitle_placement\\single_default\\SAN\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_default\\GLIP\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            [
+                                (1024, 1024),
+                                "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                            ]
+                        ]
 
                         if image_width > 0 and image_height > 0 and not self.single_mask_created:
                             image_path = os.path.join(root, file)
@@ -387,9 +396,17 @@ class final_sampling:
                 if root.split("\\")[-2].upper() == "_A":
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file, [(1024, 1024),
-                                "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]]
+                            "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\SAN\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\GLIP\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            [
+                                (1024, 1024),
+                                "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                            ]
+                        ]
 
                 elif root.split("\\")[-2].upper() == "B":
                     if "-".join(file.split("-")[:1]) in complete_dict:
@@ -411,9 +428,48 @@ class final_sampling:
                         print(f"file_temp {file_temp} not found")
 
                 elif root.split("\\")[-2].upper() == "JSONS":
-                    json_temp = json.load(os.path.join(root, file))
-                    print(json_temp)
-                    print(self.data_dict[root.split("\\")[-3]])
+                    with open(os.path.join(root, file), 'r') as pfile:
+                        # Load the data from the file
+                        json_temp = json.load(pfile)
+
+                    if "images" in json_temp:
+                        raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
+                        json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
+
+                        ids_available = [pdict["id"] for pdict in json_temp["images"] if
+                                         pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or
+                                         pdict["file_name"] in complete_dict]
+                        json_temp["annotations"] = [pdict for pdict in json_temp["annotations"] if
+                                                    pdict["image_id"] in ids_available]
+
+                        if "to_create" in copy_dict:
+                            copy_dict["to_create"].append(
+                                [json_temp, "\\subtitle_placement\\single_default\\GLIP\\COCO_annotations\\" +
+                                 os.path.basename(root) + "\\" + file])
+                        else:
+                            copy_dict["to_create"] = [[json_temp,
+                                                       "\\subtitle_placement\\single_default\\GLIP\\COCO_annotations\\"
+                                                       + os.path.basename(root) + "\\" + file]]
+                    else:
+                        if "to_create" in copy_dict:
+                            copy_dict["to_create"].append(
+                                [json_temp, "\\count_faces\\" + file])
+                        else:
+                            copy_dict["to_create"] = [[json_temp, "\\count_faces\\" + file]]
+                            # if dirs in data_dict:
+                            #     # Create folder in output_path if it doesn't exist
+                            #     output_folder = os.path.join(output_path, folder_name)
+                            #     if not os.path.exists(output_folder):
+                            #         os.makedirs(output_folder)
+                            #  #     # Iterate over files in the subfolder
+                            #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
+                            #         # Perform filtering based on data in data_dict
+                            #         filtered_data = [data for data in data_dict[folder_name] if data[
+                            #             'filter_criteria'] == file_name]
+                            # Modify the filter_criteria as per your data
+                            #         # Write filtered data to output_path
+                            #         with open(os.path.join(output_folder, file_name), 'w') as output_file:
+                            #             json.dump(filtered_data, output_file)
 
                 else:
                     print(f"Path not found {root}")
@@ -463,28 +519,37 @@ class final_sampling:
             print("An error occurred:", e)
 
 
-    def read_in_json_files(self, path_jsons: str):
+    def read_in_json_files(self, path_jsons: str) -> dict:
+        data_dict = {}
         for root, dirs, files in os.walk(path_jsons):
             base_folder = root.replace(path_jsons, "").replace(os.path.basename(root), "").strip("\\")
             for file in files:
                 if file.endswith('.json'):
+                    print(file)
                     folder_name = os.path.basename(root)
                     with open(os.path.join(root, file), 'r') as json_file:
                         data = json.load(json_file)
-                        data = ["-".join(el["file_name"].split("-")[1:]) for el in data["images"]]
-                        if base_folder not in self.data_dict:
-                            self.data_dict[base_folder] = {}
+                        if "images" in data and self.data_dict == {}:
+                            data = ["-".join(el["file_name"].split("-")[1:]) for el in data["images"]]
+                        if base_folder not in data_dict:
+                            data_dict[base_folder] = {}
 
-                        if folder_name not in self.data_dict[base_folder]:
-                            self.data_dict[base_folder][folder_name] = []
-                        self.data_dict[base_folder][folder_name].extend(data)
+                        if folder_name not in data_dict[base_folder]:
+                            data_dict[base_folder][folder_name] = []
+
+                        if "images" in data and self.data_dict == {}:
+                            data_dict[base_folder][folder_name].extend(data)
+                        else:
+                            data_dict[base_folder][folder_name].append(data)
+        return data_dict
 
 
     def __init__(self, rebalance, path_dataset: str =r'G:\Coding\VLM_subtitling\dataset_processed', path_jsons: str = r'G:\Coding\VLM_subtitling\dataset_labeled', ignore_different: bool = True):
 
         self.rebalance = rebalance
         self.data_dict = {}
-        self.read_in_json_files(path_jsons)
+        self.data_dict = self.read_in_json_files(path_jsons)
+        self.orig_annotation = self.read_in_json_files(path_dataset)
         self.path_dataset = path_dataset
         self.path_jsons = path_jsons
         self.final_result_dict = {}

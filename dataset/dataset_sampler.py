@@ -55,7 +55,7 @@ if __name__ == '__main__':
                                  path_dataset=args.video_path, ignore_different=args.ignore_different)
         sampler.run()
 
-        exit(-1)
+        raise NotImplementedError("Implement pixelmap generation")
         path_coco_annotations = args.annotations
         path_images = args.video_path
         output_path = "\\".join(args.video_path.split("\\")[:-1]) + r"\dataset_final"
