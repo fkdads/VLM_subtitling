@@ -349,6 +349,7 @@ class final_sampling:
                 else:
                     complete_dict[element] = pkey
 
+        jsons_final = {}
         if root.split("\\")[-2].upper() in ["A", "B", "_A", "PIXELMAPS", "JSONS"]:
             for file in files:
                 if ".png" in file or ".jpg" in file or ".jpeg" in file and (image_width == -100 or image_height == -100):
@@ -410,12 +411,14 @@ class final_sampling:
                         print(f"file_temp {file_temp} not found")
 
                 elif root.split("\\")[-2].upper() == "JSONS":
+                    json_temp = json.load(os.path.join(root, file))
+                    print(json_temp)
                     print(self.data_dict[root.split("\\")[-3]])
 
                 else:
                     print(f"Path not found {root}")
-        else:
-            print(f"root split not found {root.split("\\")[-2].upper()}")
+        #else:
+        #    print(f"root split not found {root.split("\\")[-2].upper()}")
         return copy_dict
 
     @staticmethod
