@@ -354,12 +354,14 @@ class final_sampling:
         jsons_final = {}
         if root.split("\\")[-2].upper() in ["A", "B", "_A", "PIXELMAPS", "JSONS"]:
             for file in files:
-                if ".png" in file or ".jpg" in file or ".jpeg" in file and (image_width == -100 or image_height == -100):
+                if ".png" in file or ".jpg" in file or ".jpeg" in file and (image_width == -100 or image_height == -100) and "_single" in root:
                     image_width, image_height = self.get_image_dimensions(os.path.join(root, file))
 
-                if root.split("\\")[-2].upper() == "A":
+                if root.split("\\")[-2].upper() == "A" and "_single" in root:
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
+                            "\\active_speaker_detection\\single\\Pix2Pix\\A\\" +
+                            complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
                             "\\subtitle_placement\\single_default\\Pix2Pix\\A\\" +
                             complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
                             "\\subtitle_placement\\single_default\\SAN\\" + complete_dict[
@@ -393,7 +395,7 @@ class final_sampling:
                                                            "\\subtitle_placement\\single_empty\\DALL-E\\mask.png"]]  # if dirs in data_dict:  #     # Create folder in output_path if it doesn't exist  #     output_folder = os.path.join(output_path, folder_name)  #     if not os.path.exists(output_folder):  #         os.makedirs(output_folder)  #  #     # Iterate over files in the subfolder  #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):  #         # Perform filtering based on data in data_dict  #         filtered_data = [data for data in data_dict[folder_name] if data[  #             'filter_criteria'] == file_name]  # Modify the filter_criteria as per your data  #         # Write filtered data to output_path  #         with open(os.path.join(output_folder, file_name), 'w') as output_file:  #             json.dump(filtered_data, output_file)
                             self.single_mask_created = True
 
-                if root.split("\\")[-2].upper() == "_A":
+                if root.split("\\")[-2].upper() == "_A" and "_single" in root:
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_empty\\Pix2Pix\\A\\" + complete_dict[
@@ -408,13 +410,13 @@ class final_sampling:
                             ]
                         ]
 
-                elif root.split("\\")[-2].upper() == "B":
+                elif root.split("\\")[-2].upper() == "B" and "_single" in root:
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
                             "\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
                             "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
 
-                elif root.split("\\")[-2].upper() == "PIXELMAPS":
+                elif root.split("\\")[-2].upper() == "PIXELMAPS" and "_single" in root:
                     file_temp = "-".join(file.split("-")[:1])
                     if not file_temp in complete_dict:
                         file_temp = file_temp.replace(".png", "_0.jpg")
@@ -427,13 +429,23 @@ class final_sampling:
                     else:
                         print(f"file_temp {file_temp} not found")
 
-                elif root.split("\\")[-2].upper() == "JSONS":
+                elif root.split("\\")[-2].upper() == "JSONS" and "_single" in root:
                     with open(os.path.join(root, file), 'r') as pfile:
                         # Load the data from the file
                         json_temp = json.load(pfile)
 
                     if "images" in json_temp:
                         raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
+                        for element in json_temp["images"]:
+                            cat = ""
+                            if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict:
+                                cat = complete_dict[pdict["file_name"].replace(".jpg", "_0.jpg")]
+                            elif pdict["file_name"] in complete_dict:
+                                cat = complete_dict[pdict["file_name"]]
+                            else:
+                                break
+
+                        self.final_jsons
                         json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
 
                         ids_available = [pdict["id"] for pdict in json_temp["images"] if
@@ -444,11 +456,11 @@ class final_sampling:
 
                         if "to_create" in copy_dict:
                             copy_dict["to_create"].append(
-                                [json_temp, "\\subtitle_placement\\single_default\\GLIP\\COCO_annotations\\" +
+                                [json_temp, "\\subtitle_placement\\single_default\\GLIP\\annotations\\" +
                                  os.path.basename(root) + "\\" + file])
                         else:
                             copy_dict["to_create"] = [[json_temp,
-                                                       "\\subtitle_placement\\single_default\\GLIP\\COCO_annotations\\"
+                                                       "\\subtitle_placement\\single_default\\GLIP\\annotations\\"
                                                        + os.path.basename(root) + "\\" + file]]
                     else:
                         if "to_create" in copy_dict:
@@ -525,11 +537,15 @@ class final_sampling:
             base_folder = root.replace(path_jsons, "").replace(os.path.basename(root), "").strip("\\")
             for file in files:
                 if file.endswith('.json'):
-                    print(file)
                     folder_name = os.path.basename(root)
                     with open(os.path.join(root, file), 'r') as json_file:
                         data = json.load(json_file)
                         if "images" in data and self.data_dict == {}:
+                            images = True
+                        else:
+                            images = False
+
+                        if images:
                             data = ["-".join(el["file_name"].split("-")[1:]) for el in data["images"]]
                         if base_folder not in data_dict:
                             data_dict[base_folder] = {}
@@ -537,7 +553,7 @@ class final_sampling:
                         if folder_name not in data_dict[base_folder]:
                             data_dict[base_folder][folder_name] = []
 
-                        if "images" in data and self.data_dict == {}:
+                        if images:
                             data_dict[base_folder][folder_name].extend(data)
                         else:
                             data_dict[base_folder][folder_name].append(data)
@@ -650,9 +666,9 @@ class final_sampling:
             "Provide three separate folders for single, overlapping, and voting experiment. Ensure it is the "
             "correct path")
 
-        root_dirs = os.walk(os.path.join(path_dataset, [folder_name for folder_name in os.listdir(path_dataset) if
-                                                        "single" in folder_name][0]))
-
+        # root_dirs = os.walk(os.path.join(path_dataset, [folder_name for folder_name in os.listdir(path_dataset) if
+        #                                                 "single" in folder_name][0]))
+        root_dirs = os.walk(path_dataset)
 
         # for root, dirs, files in root_dirs:
         #    print(self.process_files([root, dirs, files]))
