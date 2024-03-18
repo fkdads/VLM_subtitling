@@ -319,7 +319,6 @@ class final_sampling:
                                     json.dump(element[1], file)
                             else:
                                 print(f"Not supported complex item detected {type(element)}: {element}")
-
                         else:
                             if not os.path.dirname(self.output_path + element) in paths:
                                 paths.append(os.path.dirname(self.output_path + element))
@@ -327,6 +326,16 @@ class final_sampling:
                                 if not os.path.exists(target_dir):
                                    os.makedirs(target_dir)
                             shutil.copy(pkey, self.output_path + element)
+
+            elif isinstance(pvalue, dict):
+                #for ppkey, ppvalue in pvalue.items():
+                category, task = pkey.split("_")
+                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey)):
+                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey))
+
+                with open(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey, "results.json"), "w") as json_file:
+                    json.dump(pvalue, json_file)
+
             else:
                 raise ValueError("final copy dict contains irregular values")
 
@@ -351,7 +360,7 @@ class final_sampling:
                 else:
                     complete_dict[element] = pkey
 
-        jsons_final = {}
+
         if root.split("\\")[-2].upper() in ["A", "B", "_A", "PIXELMAPS", "JSONS"]:
             for file in files:
                 if ".png" in file or ".jpg" in file or ".jpeg" in file and (image_width == -100 or image_height == -100) and "_single" in root:
@@ -429,18 +438,26 @@ class final_sampling:
                     else:
                         print(f"file_temp {file_temp} not found")
 
-                elif root.split("\\")[-2].upper() == "JSONS" and "_single" in root:
+                elif root.split("\\")[-2].upper() == "JSONS":
                     with open(os.path.join(root, file), 'r') as pfile:
                         # Load the data from the file
                         json_temp = json.load(pfile)
 
                     if "images" in json_temp:
+                        temp_prefix = ""
+                        if "_single" in root:
+                            temp_prefix = "_single"
+                        elif "_overlapped" in root or "_overlapping" in root or "_overlap" in root:
+                            temp_prefix = "_overlapped"
+                        else:
+                            temp_prefix = "_voting"
+
                         for element in json_temp["images"]:
                             cat = ""
                             if element["file_name"].replace(".jpg", "_0.jpg") in complete_dict:
-                                cat = complete_dict[element["file_name"].replace(".jpg", "_0.jpg")] + "_single"
+                                cat = complete_dict[element["file_name"].replace(".jpg", "_0.jpg")] + temp_prefix
                             elif element["file_name"] in complete_dict:
-                                cat = complete_dict[element["file_name"]] + "_single"
+                                cat = complete_dict[element["file_name"]] + temp_prefix
 
                             if cat != "":
                                 if not cat in copy_dict:
@@ -455,9 +472,9 @@ class final_sampling:
                             cat = ""
                             try:
                                 if temp_all[element["image_id"]].replace(".jpg", "_0.jpg") in complete_dict:
-                                    cat = complete_dict[temp_all[element["image_id"]].replace(".jpg", "_0.jpg")] + "_single"
+                                    cat = complete_dict[temp_all[element["image_id"]].replace(".jpg", "_0.jpg")] + temp_prefix
                                 elif temp_all[element["image_id"]] in complete_dict:
-                                    cat = complete_dict[temp_all[element["image_id"]]] + "_single"
+                                    cat = complete_dict[temp_all[element["image_id"]]] + temp_prefix
                             except:
                                 print(element)
                                 raise ValueError("Invalid element")
@@ -465,10 +482,10 @@ class final_sampling:
                             if cat != "":
                                 if not cat in copy_dict:
                                     copy_dict[cat] = {}
-                                if "images" in copy_dict[cat]:
-                                    copy_dict[cat]["images"].append(element)
+                                if "annotations" in copy_dict[cat]:
+                                    copy_dict[cat]["annotations"].append(element)
                                 else:
-                                    copy_dict[cat]["images"] = [element]
+                                    copy_dict[cat]["annotations"] = [element]
                     #     raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
                     #     json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
                     #
@@ -705,8 +722,6 @@ class final_sampling:
 
         for result in results:
             self.final_result_dict.update(result)
-
-
 
 
 class SubtitlePlacement:
