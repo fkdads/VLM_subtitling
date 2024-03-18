@@ -336,6 +336,12 @@ class final_sampling:
                 with open(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey, "results.json"), "w") as json_file:
                     json.dump(pvalue, json_file)
 
+                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection_persons", "GLIP", task, category, pkey)):
+                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection_persons", "GLIP", task, category, pkey))
+
+                with open(os.path.join(self.output_path, "active_speaker_detection_persons", "GLIP", task, category, pkey, "results.json"), "w") as json_file:
+                    json.dump(pvalue, json_file)
+
             else:
                 raise ValueError("final copy dict contains irregular values")
 
