@@ -435,53 +435,77 @@ class final_sampling:
                         json_temp = json.load(pfile)
 
                     if "images" in json_temp:
-                        raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
                         for element in json_temp["images"]:
                             cat = ""
-                            if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict:
-                                cat = complete_dict[pdict["file_name"].replace(".jpg", "_0.jpg")]
-                            elif pdict["file_name"] in complete_dict:
-                                cat = complete_dict[pdict["file_name"]]
-                            else:
-                                break
+                            if element["file_name"].replace(".jpg", "_0.jpg") in complete_dict:
+                                cat = complete_dict[element["file_name"].replace(".jpg", "_0.jpg")] + "_single"
+                            elif element["file_name"] in complete_dict:
+                                cat = complete_dict[element["file_name"]] + "_single"
 
-                        self.final_jsons
-                        json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
+                            if cat != "":
+                                if not cat in copy_dict:
+                                    copy_dict[cat] = {}
+                                if "images" in copy_dict[cat]:
+                                    copy_dict[cat]["images"].append(element)
+                                else:
+                                    copy_dict[cat]["images"] = [element]
 
-                        ids_available = [pdict["id"] for pdict in json_temp["images"] if
-                                         pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or
-                                         pdict["file_name"] in complete_dict]
-                        json_temp["annotations"] = [pdict for pdict in json_temp["annotations"] if
-                                                    pdict["image_id"] in ids_available]
+                        temp_all = {pelement["id"]: pelement["file_name"] for pelement in json_temp["images"]}
+                        for element in json_temp["annotations"]:
+                            cat = ""
+                            try:
+                                if temp_all[element["image_id"]].replace(".jpg", "_0.jpg") in complete_dict:
+                                    cat = complete_dict[temp_all[element["image_id"]].replace(".jpg", "_0.jpg")] + "_single"
+                                elif temp_all[element["image_id"]] in complete_dict:
+                                    cat = complete_dict[temp_all[element["image_id"]]] + "_single"
+                            except:
+                                print(element)
+                                raise ValueError("Invalid element")
 
-                        if "to_create" in copy_dict:
-                            copy_dict["to_create"].append(
-                                [json_temp, "\\subtitle_placement\\single_default\\GLIP\\annotations\\" +
-                                 os.path.basename(root) + "\\" + file])
-                        else:
-                            copy_dict["to_create"] = [[json_temp,
-                                                       "\\subtitle_placement\\single_default\\GLIP\\annotations\\"
-                                                       + os.path.basename(root) + "\\" + file]]
-                    else:
-                        if "to_create" in copy_dict:
-                            copy_dict["to_create"].append(
-                                [json_temp, "\\count_faces\\" + file])
-                        else:
-                            copy_dict["to_create"] = [[json_temp, "\\count_faces\\" + file]]
-                            # if dirs in data_dict:
-                            #     # Create folder in output_path if it doesn't exist
-                            #     output_folder = os.path.join(output_path, folder_name)
-                            #     if not os.path.exists(output_folder):
-                            #         os.makedirs(output_folder)
-                            #  #     # Iterate over files in the subfolder
-                            #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
-                            #         # Perform filtering based on data in data_dict
-                            #         filtered_data = [data for data in data_dict[folder_name] if data[
-                            #             'filter_criteria'] == file_name]
-                            # Modify the filter_criteria as per your data
-                            #         # Write filtered data to output_path
-                            #         with open(os.path.join(output_folder, file_name), 'w') as output_file:
-                            #             json.dump(filtered_data, output_file)
+                            if cat != "":
+                                if not cat in copy_dict:
+                                    copy_dict[cat] = {}
+                                if "images" in copy_dict[cat]:
+                                    copy_dict[cat]["images"].append(element)
+                                else:
+                                    copy_dict[cat]["images"] = [element]
+                    #     raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
+                    #     json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
+                    #
+                    #     ids_available = [pdict["id"] for pdict in json_temp["images"] if
+                    #                      pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or
+                    #                      pdict["file_name"] in complete_dict]
+                    #     json_temp["annotations"] = [pdict for pdict in json_temp["annotations"] if
+                    #                                 pdict["image_id"] in ids_available]
+                    #
+                    #     if "to_create" in copy_dict:
+                    #         copy_dict["to_create"].append(
+                    #             [json_temp, "\\subtitle_placement\\single_default\\GLIP\\annotations\\" +
+                    #              os.path.basename(root) + "\\" + file])
+                    #     else:
+                    #         copy_dict["to_create"] = [[json_temp,
+                    #                                    "\\subtitle_placement\\single_default\\GLIP\\annotations\\"
+                    #                                    + os.path.basename(root) + "\\" + file]]
+                    # else:
+                    #     if "to_create" in copy_dict:
+                    #         copy_dict["to_create"].append(
+                    #             [json_temp, "\\count_faces\\" + file])
+                    #     else:
+                    #         copy_dict["to_create"] = [[json_temp, "\\count_faces\\" + file]]
+                    #         # if dirs in data_dict:
+                    #         #     # Create folder in output_path if it doesn't exist
+                    #         #     output_folder = os.path.join(output_path, folder_name)
+                    #         #     if not os.path.exists(output_folder):
+                    #         #         os.makedirs(output_folder)
+                    #         #  #     # Iterate over files in the subfolder
+                    #         #     for file_name in os.listdir(os.path.join(path_dataset, folder_name)):
+                    #         #         # Perform filtering based on data in data_dict
+                    #         #         filtered_data = [data for data in data_dict[folder_name] if data[
+                    #         #             'filter_criteria'] == file_name]
+                    #         # Modify the filter_criteria as per your data
+                    #         #         # Write filtered data to output_path
+                    #         #         with open(os.path.join(output_folder, file_name), 'w') as output_file:
+                    #         #             json.dump(filtered_data, output_file)
 
                 else:
                     print(f"Path not found {root}")
@@ -569,6 +593,7 @@ class final_sampling:
         self.path_dataset = path_dataset
         self.path_jsons = path_jsons
         self.final_result_dict = {}
+        self.final_jsons = {}
         # self.video_path = video_path
         # self.args = args
         self.output_path = "\\".join(path_dataset.split("\\")[:-1]) + r"\dataset_final"
@@ -673,13 +698,14 @@ class final_sampling:
         # for root, dirs, files in root_dirs:
         #    print(self.process_files([root, dirs, files]))
 
-        with Pool() as pool:
+        with Pool(1) as pool:
             results = pool.map(self.process_files, root_dirs)
 
         # Now you can collect and aggregate the results
 
         for result in results:
             self.final_result_dict.update(result)
+
 
 
 
