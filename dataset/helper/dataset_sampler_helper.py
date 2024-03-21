@@ -330,16 +330,16 @@ class final_sampling:
             elif isinstance(pvalue, dict):
                 #for ppkey, ppvalue in pvalue.items():
                 category, task = pkey.split("_")
-                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey)):
-                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey))
+                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category)):
+                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category))
 
-                with open(os.path.join(self.output_path, "active_speaker_detection", "GLIP", task, category, pkey, "results.json"), "w") as json_file:
+                with open(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category, "results.json"), "w") as json_file:
                     json.dump(pvalue, json_file)
 
-                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection_persons", "GLIP", task, category, pkey)):
-                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection_persons", "GLIP", task, category, pkey))
+                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category)):
+                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category))
 
-                with open(os.path.join(self.output_path, "active_speaker_detection_persons", "GLIP", task, category, pkey, "results.json"), "w") as json_file:
+                with open(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category, "results.json"), "w") as json_file:
                     json.dump(pvalue, json_file)
 
             else:
@@ -425,6 +425,36 @@ class final_sampling:
                             ]
                         ]
 
+                if root.split("\\")[-2].upper() == "_A" and "_overlapped" in root:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
+                        copy_dict[os.path.join(root, file)] = [
+                            "\\active_speaker_detection\\overlapped\\Pix2Pix\\A\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\active_speaker_detection\\overlapped\\SAN\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\active_speaker_detection\\overlapped\\GLIP\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            [
+                                (1024, 1024),
+                                "\\active_speaker_detection\\overlapped\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                            ]
+                        ]
+
+                if root.split("\\")[-2].upper() == "_A" and "_voting" in root:
+                    if "-".join(file.split("-")[:1]) in complete_dict:
+                        copy_dict[os.path.join(root, file)] = [
+                            "\\active_speaker_detection\\voting\\Pix2Pix\\A\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\active_speaker_detection\\voting\\SAN\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\active_speaker_detection\\voting\\GLIP\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            [
+                                (1024, 1024),
+                                "\\active_speaker_detection\\voting\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                            ]
+                        ]
+
                 elif root.split("\\")[-2].upper() == "B" and "_single" in root:
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
@@ -468,6 +498,8 @@ class final_sampling:
                             if cat != "":
                                 if not cat in copy_dict:
                                     copy_dict[cat] = {}
+                                    copy_dict[cat]["info"] = json_temp["info"]
+                                    copy_dict[cat]["categories"] = json_temp["categories"]
                                 if "images" in copy_dict[cat]:
                                     copy_dict[cat]["images"].append(element)
                                 else:
@@ -488,10 +520,14 @@ class final_sampling:
                             if cat != "":
                                 if not cat in copy_dict:
                                     copy_dict[cat] = {}
+                                    copy_dict[cat]["info"] = json_temp["info"]
+                                    copy_dict[cat]["categories"] = json_temp["categories"]
                                 if "annotations" in copy_dict[cat]:
                                     copy_dict[cat]["annotations"].append(element)
                                 else:
                                     copy_dict[cat]["annotations"] = [element]
+
+
                     #     raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
                     #     json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
                     #
