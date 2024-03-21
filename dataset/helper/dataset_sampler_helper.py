@@ -275,23 +275,23 @@ class final_sampling:
             if 0 > target_size:
                 target_size = min(original_image.size)
 
-
         # Resize the image to a square
         resized_image = original_image.resize((target_size, target_size))
 
         resized_image.save(target_path, 'PNG')
-        return True #image_path.replace(".jpg", ".png").replace("\_A", "\_A-resized")
+        return True  # image_path.replace(".jpg", ".png").replace("\_A", "\_A-resized")
 
     def run(self):
         self.filter_dataset(path_dataset=self.path_dataset, rebalance=self.rebalance)
 
         paths = []
 
-        #target_dir = os.path.dirname(target_path)
-        #target_dir = os.path.dirname(target_path)
-        #if not os.path.exists(target_dir):
+        # target_dir = os.path.dirname(target_path)
+        # target_dir = os.path.dirname(target_path)
+        # if not os.path.exists(target_dir):
         #    os.makedirs(target_dir)
 
+        raise NotImplementedError("Implement multiprocessing here as well")
         for pkey, pvalue in self.final_result_dict.items():
             if isinstance(pvalue, list):
                 if len(pvalue) > 0:
@@ -308,7 +308,7 @@ class final_sampling:
                                 paths.append(os.path.dirname(self.output_path + element[1]))
                                 target_dir = os.path.dirname(self.output_path + element[1])
                                 if not os.path.exists(target_dir):
-                                   os.makedirs(target_dir)
+                                    os.makedirs(target_dir)
 
                             if isinstance(element[0], tuple) and len(element) == 2:
                                 self.prepare_image(pkey, self.output_path + element[1], element[0])
@@ -324,29 +324,34 @@ class final_sampling:
                                 paths.append(os.path.dirname(self.output_path + element))
                                 target_dir = os.path.dirname(self.output_path + element)
                                 if not os.path.exists(target_dir):
-                                   os.makedirs(target_dir)
+                                    os.makedirs(target_dir)
                             shutil.copy(pkey, self.output_path + element)
 
             elif isinstance(pvalue, dict):
-                #for ppkey, ppvalue in pvalue.items():
+                # for ppkey, ppvalue in pvalue.items():
                 category, task = pkey.split("_")
-                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category)):
+                if not os.path.exists(
+                        os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category)):
                     os.makedirs(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category))
 
-                with open(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category, "results.json"), "w") as json_file:
+                with open(os.path.join(self.output_path, "active_speaker_detection", task, "GLIP", category,
+                                       "results.json"), "w") as json_file:
                     json.dump(pvalue, json_file)
 
-                if not os.path.exists(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category)):
-                    os.makedirs(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category))
+                if not os.path.exists(
+                        os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category)):
+                    os.makedirs(
+                        os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category))
 
-                with open(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category, "results.json"), "w") as json_file:
+                with open(os.path.join(self.output_path, "active_speaker_detection_persons", task, "GLIP", category,
+                                       "results.json"), "w") as json_file:
                     json.dump(pvalue, json_file)
 
             else:
                 raise ValueError("final copy dict contains irregular values")
 
         return True
-        #raise NotImplementedError("Please extend for copying files in final directories")
+        # raise NotImplementedError("Please extend for copying files in final directories")
 
     def process_files(self, iteration_list):
         root, dirs, files = iteration_list
@@ -366,10 +371,10 @@ class final_sampling:
                 else:
                     complete_dict[element] = pkey
 
-
         if root.split("\\")[-2].upper() in ["A", "B", "_A", "PIXELMAPS", "JSONS"]:
             for file in files:
-                if ".png" in file or ".jpg" in file or ".jpeg" in file and (image_width == -100 or image_height == -100) and "_single" in root:
+                if ".png" in file or ".jpg" in file or ".jpeg" in file and (
+                        image_width == -100 or image_height == -100) and "_single" in root:
                     image_width, image_height = self.get_image_dimensions(os.path.join(root, file))
 
                 if root.split("\\")[-2].upper() == "A" and "_single" in root:
@@ -385,7 +390,8 @@ class final_sampling:
                                 "-".join(file.split("-")[:1])] + "\\" + file,
                             [
                                 (1024, 1024),
-                                "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                                "\\subtitle_placement\\single_default\\DALL-E\\" + complete_dict[
+                                    "-".join(file.split("-")[:1])] + "\\" + file
                             ]
                         ]
 
@@ -421,7 +427,8 @@ class final_sampling:
                                 "-".join(file.split("-")[:1])] + "\\" + file,
                             [
                                 (1024, 1024),
-                                "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                                "\\subtitle_placement\\single_empty\\DALL-E\\" + complete_dict[
+                                    "-".join(file.split("-")[:1])] + "\\" + file
                             ]
                         ]
 
@@ -436,30 +443,34 @@ class final_sampling:
                                 "-".join(file.split("-")[:1])] + "\\" + file,
                             [
                                 (1024, 1024),
-                                "\\active_speaker_detection\\overlapped\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                                "\\active_speaker_detection\\overlapped\\DALL-E\\" + complete_dict[
+                                    "-".join(file.split("-")[:1])] + "\\" + file
                             ]
                         ]
 
                 if root.split("\\")[-2].upper() == "_A" and "_voting" in root:
-                    if "-".join(file.split("-")[:1]) in complete_dict:
+                    if "-".join(file.split("-")[:1]).replace("_1", "_0").replace("_2", "_0") in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
                             "\\active_speaker_detection\\voting\\Pix2Pix\\A\\" + complete_dict[
-                                "-".join(file.split("-")[:1])] + "\\" + file,
+                                "-".join(file.split("-")[:1]).replace("_1", "_0").replace("_2", "_0")] + "\\" + file,
                             "\\active_speaker_detection\\voting\\SAN\\" + complete_dict[
-                                "-".join(file.split("-")[:1])] + "\\" + file,
+                                "-".join(file.split("-")[:1]).replace("_1", "_0").replace("_2", "_0")] + "\\" + file,
                             "\\active_speaker_detection\\voting\\GLIP\\" + complete_dict[
-                                "-".join(file.split("-")[:1])] + "\\" + file,
+                                "-".join(file.split("-")[:1]).replace("_1", "_0").replace("_2", "_0")] + "\\" + file,
                             [
                                 (1024, 1024),
-                                "\\active_speaker_detection\\voting\\DALL-E\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file
+                                "\\active_speaker_detection\\voting\\DALL-E\\" + complete_dict[
+                                    "-".join(file.split("-")[:1]).replace("_1", "_0").replace("_2", "_0")] + "\\" + file
                             ]
                         ]
 
                 elif root.split("\\")[-2].upper() == "B" and "_single" in root:
                     if "-".join(file.split("-")[:1]) in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + complete_dict["-".join(file.split("-")[:1])] + "\\" + file]
+                            "\\subtitle_placement\\single_default\\Pix2Pix\\B\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\Pix2Pix\\B\\" + complete_dict[
+                                "-".join(file.split("-")[:1])] + "\\" + file]
 
                 elif root.split("\\")[-2].upper() == "PIXELMAPS" and "_single" in root:
                     file_temp = "-".join(file.split("-")[:1])
@@ -469,8 +480,10 @@ class final_sampling:
                             file_temp = file_temp.replace(".jpg", ".png")
                     if file_temp in complete_dict:
                         copy_dict[os.path.join(root, file)] = [
-                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict[file_temp] + "\\" + file,
-                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict[file_temp] + "\\" + file]
+                            "\\subtitle_placement\\single_default\\SAN\\pixelmaps\\" + complete_dict[
+                                file_temp] + "\\" + file,
+                            "\\subtitle_placement\\single_empty\\SAN\\pixelmaps\\" + complete_dict[
+                                file_temp] + "\\" + file]
                     else:
                         print(f"file_temp {file_temp} not found")
 
@@ -510,7 +523,8 @@ class final_sampling:
                             cat = ""
                             try:
                                 if temp_all[element["image_id"]].replace(".jpg", "_0.jpg") in complete_dict:
-                                    cat = complete_dict[temp_all[element["image_id"]].replace(".jpg", "_0.jpg")] + temp_prefix
+                                    cat = complete_dict[
+                                              temp_all[element["image_id"]].replace(".jpg", "_0.jpg")] + temp_prefix
                                 elif temp_all[element["image_id"]] in complete_dict:
                                     cat = complete_dict[temp_all[element["image_id"]]] + temp_prefix
                             except:
@@ -526,7 +540,6 @@ class final_sampling:
                                     copy_dict[cat]["annotations"].append(element)
                                 else:
                                     copy_dict[cat]["annotations"] = [element]
-
 
                     #     raise NotImplementedError("Implement Rebalancing!!! Current approach only drops annotations")
                     #     json_temp["images"] = [pdict for pdict in json_temp["images"] if pdict["file_name"].replace(".jpg", "_0.jpg") in complete_dict or pdict["file_name"] in complete_dict]
@@ -568,7 +581,7 @@ class final_sampling:
 
                 else:
                     print(f"Path not found {root}")
-        #else:
+        # else:
         #    print(f"root split not found {root.split("\\")[-2].upper()}")
         return copy_dict
 
@@ -593,8 +606,8 @@ class final_sampling:
         draw = ImageDraw.Draw(mask)
         if size > 0:
             draw.rectangle([(round((image_width / 2) - (size / 2)), round(image_height * 0.9 - (size / 2))),
-                        (round((image_width / 2) + (size / 2)), round(image_height * 0.9 + (size / 2)))],
-                       fill=255)  # Adjust coordinates as needed
+                            (round((image_width / 2) + (size / 2)), round(image_height * 0.9 + (size / 2)))],
+                           fill=255)  # Adjust coordinates as needed
 
         # Apply the mask to the image
         mask_image.putalpha(mask)
@@ -612,7 +625,6 @@ class final_sampling:
             print("File not found.")
         except Exception as e:
             print("An error occurred:", e)
-
 
     def read_in_json_files(self, path_jsons: str) -> dict:
         data_dict = {}
@@ -642,8 +654,8 @@ class final_sampling:
                             data_dict[base_folder][folder_name].append(data)
         return data_dict
 
-
-    def __init__(self, rebalance, path_dataset: str =r'G:\Coding\VLM_subtitling\dataset_processed', path_jsons: str = r'G:\Coding\VLM_subtitling\dataset_labeled', ignore_different: bool = True):
+    def __init__(self, rebalance, path_dataset: str = r'G:\Coding\VLM_subtitling\dataset_processed',
+                 path_jsons: str = r'G:\Coding\VLM_subtitling\dataset_labeled', ignore_different: bool = True):
 
         self.rebalance = rebalance
         self.data_dict = {}
@@ -729,7 +741,6 @@ class final_sampling:
             data_dict[pkey]["test"] = test_images
             data_dict[pkey]["val"] = val_images
             data_dict[pkey]["train"] = train_images
-
 
     def filter_dataset(self, path_dataset, rebalance: list = [0.75, 0.15, 0.1]):
         from PIL import Image, ImageDraw
